@@ -1,0 +1,11 @@
+od - dump file contents
+
+od [-bcdox] [file1...]
+
+ -b  produce one-byte octal dump
+ -c  produce one-byte character dump
+ -d  produce two-byte decimal dump
+ -o  produce two-byte octal dump
+ -x  produce two-byte hexadecimal dump
+
+ file1...  files to dump (default is stdin)

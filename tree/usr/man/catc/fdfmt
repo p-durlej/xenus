@@ -1,0 +1,5 @@
+fdfmt - format diskette
+
+fdfmt [dev]
+
+ dev  floppy device pathname

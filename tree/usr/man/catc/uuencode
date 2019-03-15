@@ -1,0 +1,6 @@
+uuencode - encode binary files as text
+
+uuencode [file] name
+
+ file  file to encode (default is stdin)
+ name  file name for uudecode

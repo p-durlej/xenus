@@ -1,0 +1,9 @@
+kill - kill processes
+
+kill [-sig] pid1...
+kill -l
+
+ -l  list signal names with their numbers
+
+ sig      signal to send
+ pid1...  PIDs to kill

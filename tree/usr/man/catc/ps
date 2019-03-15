@@ -1,0 +1,7 @@
+ps - print process table listing
+
+ps [-alx]
+
+ -a  include other user's processes
+ -l  detailed listing format
+ -x  include processes without a controlling terminal

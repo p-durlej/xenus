@@ -1,0 +1,4 @@
+/dev/hd0 /
+/dev/hd2 /tmp
+/dev/hd3 /usr/spool
+/dev/hd4 /udd

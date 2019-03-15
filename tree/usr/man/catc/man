@@ -1,0 +1,9 @@
+man - display manual pages
+
+man [section] name1...
+man -i [section]
+
+ -i  display section index (default is all sections)
+ 
+ section  manual section to search for name (c or f)
+ name1... manual page name

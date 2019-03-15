@@ -1,0 +1,8 @@
+cmp - compare file contents
+
+cmp [-ls] file1 file2
+
+ -l  print byte offsets and the differing values for each difference
+ -s  silent operation
+
+ file1, file2  files to compare

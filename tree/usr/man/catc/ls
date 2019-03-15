@@ -1,0 +1,13 @@
+ls - list directory contents
+
+ls [-adgil] [file1...]
+
+ -a  do not skip dotfiles
+ -c  print last i-node change time instead of last modification time
+ -d  list directories, not their contents
+ -g  print group name instead of the owner
+ -i  print inode numbers
+ -l  detailed listing format
+ -u  print last access time instead of last modification time
+
+ file1...  files to list (default is the current directory)

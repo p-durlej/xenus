@@ -1,0 +1,8 @@
+/etc/fstab - file system table
+
+blkdev1 dir1 [r]
+...
+
+ blkdev1...  block device of the file system
+ dir1...     mount point
+ r           read-only flag

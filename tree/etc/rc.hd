@@ -1,0 +1,4 @@
+umask 22
+true > /etc/mtab
+fsck -af
+mount -a

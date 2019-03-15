@@ -1,0 +1,7 @@
+more - display file contents page by page
+
+more [name1...]
+
+ name1...  files to show
+
+The COLUMNS and LINES environment variables override the default terminal size.

@@ -1,0 +1,7 @@
+mail - send and receive mail
+
+mail [rcpt1...]
+mail -f [mbox]
+
+ rcpt1...  recipients to send mail to
+ mbox      mailbox to read

@@ -1,0 +1,6 @@
+date - print and set the date and time
+
+date [MMDDhhmmss[CCYY]]
+
+ MMDDhhmmss[CCYY]  date and time to set (default is to print the current date
+                   and time)

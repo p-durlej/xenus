@@ -1,0 +1,10 @@
+mount - mount file systems
+
+mount [-r] dev dir
+mount -a
+
+ -a  mount all file systems in /etc/fstab
+ -r  mount read-only
+
+ dev  block device of the file system
+ dir  mount point of the file system

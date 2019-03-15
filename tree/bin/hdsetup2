@@ -1,0 +1,38 @@
+cd /
+mkfs -p /dev/hd0 160 /
+mkfs /dev/hd2
+mkfs /dev/hd3
+mkfs /dev/hd4
+mkboot /dev/hd0
+
+mount /dev/hd0 /tmp
+mount /dev/hd2 /tmp/tmp
+mount /dev/hd3 /tmp/usr/spool
+
+mv /tmp/etc/fstab.hd /tmp/etc/fstab
+mv /tmp/etc/rc.hd    /tmp/etc/rc
+rm /tmp/bin/hdsetup2
+rm /tmp/bin/hdsetup
+rm /tmp/bin/sysup2
+rm /tmp/bin/sysup
+
+rm /tmp/bin/c
+rm /tmp/bin/[
+rm /tmp/bin/pg
+rm /tmp/bin/uureceive
+rm /tmp/bin/l
+
+ln /tmp/bin/clear /tmp/bin/c
+ln /tmp/bin/test  /tmp/bin/[
+ln /tmp/bin/more  /tmp/bin/pg
+ln /tmp/bin/uudecode /tmp/bin/uureceive
+ln /tmp/bin/ls    /tmp/bin/l
+
+mkdir /tmp/usr/spool/mail
+
+chmod 755 /tmp/usr/spool/mail
+chmod 1777 /tmp/tmp
+
+umount /tmp/usr/spool
+umount /tmp/tmp
+umount /tmp

@@ -1,0 +1,5 @@
+wc - count lines, words and characters in files
+
+wc -lwc [file1...]
+
+ file1...  files to count (default is stdin)

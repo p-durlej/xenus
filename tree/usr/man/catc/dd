@@ -1,0 +1,10 @@
+dd - copy from a file to a file
+
+dd [if=iname] [of=oname] [bs=size] [count=blocks] [seek=origin] [skip=skip]
+
+ iname   input file (default is stdin)
+ onane   output file (default is stdout)
+ size    block size (default is 512 bytes)
+ blocks  number of blocks to copy (default is to copy until EOF)
+ origin  initial output file position in blocks
+ skip    number of initial input file blocks to skip

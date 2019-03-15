@@ -1,0 +1,6 @@
+write - write a message to an user
+
+write user [tty]
+
+ user  user to write to
+ tty   display the message on a specific tty

@@ -1,0 +1,7 @@
+df - show free disk space
+
+df [-qv] [file1...]
+
+ -k  report sizes in kilobytes
+ -q  short listing format
+ -v  detailed listing format

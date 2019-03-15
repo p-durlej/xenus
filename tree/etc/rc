@@ -1,0 +1,40 @@
+
+PATH=/bin
+
+ln /bin/clear /bin/c
+ln /bin/test /bin/[
+ln /bin/more /bin/pg
+ln /bin/uudecode /bin/uureceive
+ln /bin/ls /bin/l
+
+chmod  755 / /bin /dev /etc /udd /mnt /usr /usr/lib /usr/mdec
+chmod  755 /usr/man /usr/man/catc /usr/man/catf
+chmod  755 /usr/spool /usr/spool/mail
+chmod  755 /bin/*
+chmod  644 /etc/*
+chmod  600 /etc/spwd
+chmod  644 /usr/lib/* /usr/mdec/* /usr/man/catc/* /usr/man/catf/*
+chmod 6755 /bin/passwd /bin/ps /bin/su /bin/newgrp /bin/mail
+chmod 2755 /bin/write
+chmod 1777 /tmp
+
+chgrp 2 /bin/write
+
+chmod 644 /usr/include/* /usr/include/sys/*
+chmod 755 /usr/include /usr/include/sys
+
+chmem -500000	/bin/fsck
+chmem -80000	/bin/dd
+chmem -100000	/bin/tar
+
+makedev
+
+chmod 755 /usr/guest
+chown 1   /usr/guest
+chgrp 1   /usr/guest
+
+mkboot -r /dev/fd0
+
+rm /etc/rc
+sleep 1
+exec halt -r

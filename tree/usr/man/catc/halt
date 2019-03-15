@@ -1,0 +1,6 @@
+halt - halt or reboot the system
+
+halt [-hr]
+
+ -h  halt the system (default)
+ -r  reboot the system

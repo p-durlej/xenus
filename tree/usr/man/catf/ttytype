@@ -1,0 +1,7 @@
+/etc/ttytype - terminal type table
+
+type1... tty1...
+...
+
+ type1...  tty type
+ tty1...   tty device name

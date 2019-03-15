@@ -1,0 +1,9 @@
+chgrp - change file group
+
+chgrp group file1...
+chgrp gid file1...
+
+ group  name of the new group
+ gid    numeric uid of the new group
+
+ file1...  files to change

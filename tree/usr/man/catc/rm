@@ -1,0 +1,7 @@
+rm - remove files and directories
+
+rm [-r] name1...
+
+ -r  remove directories recursively
+
+ name1...  files to remove

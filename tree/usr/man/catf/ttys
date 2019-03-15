@@ -1,0 +1,32 @@
+/etc/ttys - terminal line table
+
+1fconsole
+1ftty0r
+1ftty1r
+^^^
+||+------- device name
+|+-------- line type
++--------- enable/disable flag
+
+Line types:
+
+ 0     150-baud, no XHUP    a     150-baud, XHUP enabled
+ 1     300-baud, no XHUP    b     300-baud, XHUP enabled
+ 2    1200-baud, no XHUP    c    1200-baud, XHUP enabled
+ 3    2400-baud, no XHUP    d    2400-baud, XHUP enabled
+ 4    4800-baud, no XHUP    e    4800-baud, XHUP enabled
+ 5    9600-baud, no XHUP    f    9600-baud, XHUP enabled
+ 6   19200-baud, no XHUP    g   19200-baud, XHUP enabled
+ 7   38400-baud, no XHUP    h   38400-baud, XHUP enabled
+ 8   57600-baud, no XHUP    i   57600-baud, XHUP enabled
+ 9  115200-baud, no XHUP    j  115200-baud, XHUP enabled
+
+ C  system console, XHUP enabled
+
+Device names:
+
+ console  system console
+ tty0r    1st serial port, carrier detection
+ tty0l    1st serial port, soft carrier
+ tty1r    2nd serial port, carrier detection
+ tty1l    2nd serial port, soft carrier

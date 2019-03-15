@@ -1,0 +1,10 @@
+uname - print operating system information
+
+uname [-asrnvm]
+
+ -a  same as -srnvm
+ -s  print the operating system name
+ -r  print the operating system release (version number)
+ -n  print the node name
+ -v  print the operating system build date
+ -m  print the machine architecture name

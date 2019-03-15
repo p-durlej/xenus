@@ -1,0 +1,14 @@
+fsck -f /dev/hd0
+mount /dev/hd0 /tmp
+cp /bin/* /tmp/bin/
+cp /usr/mdec/xenus /tmp/usr/mdec/
+cp /usr/mdec/boot /tmp/usr/mdec/
+rm /tmp/bin/hdsetup2
+rm /tmp/bin/hdsetup
+rm /tmp/bin/sysup2
+rm /tmp/bin/sysup
+mkdir /tmp/usr/man /tmp/usr/man/catc /tmp/usr/man/catf # /dev/null
+cp /usr/man/catc/* /tmp/usr/man/catc/
+cp /usr/man/catf/* /tmp/usr/man/catf/
+mkboot /dev/hd0
+umount /tmp

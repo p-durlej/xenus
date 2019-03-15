@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+# Copyright (c) Piotr Durlej
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+
+set -e
+
+rm -Rf tree
+cp -Rf ../tree tree
+
+mkdir -p tree/bin		\
+	 tree/dev		\
+	 tree/tmp		\
+	 tree/udd		\
+	 tree/mnt		\
+	 tree/usr/guest		\
+	 tree/usr/mdec		\
+	 tree/usr/lib		\
+	 tree/usr/spool/mail	\
+	 tree/usr/include
+
+cp -f ../cmd/sh/sh	tree/bin/sh
+cp -f ../cmd/vi/vi	tree/bin/vi
+
+cp -f ../kern/kern	tree/usr/mdec/xenus
+cp -f ../boot/boot.bin	tree/usr/mdec/boot
+cp -f ../boot/pcmbr.bin	tree/usr/mdec/pcmbr
+
+for x in ../cmd/bin/* ; do
+	if [ -x $x ]; then
+		cp -f $x tree/bin/$(basename $x)
+	fi
+done
+
+for x in ../cmd/sbin/* ; do
+	if [ -x $x ]; then
+		cp -f $x tree/bin/$(basename $x)
+	fi
+done
+
+cp -r ../include/* tree/usr/include/
+rm -rf tree/usr/include/xenus
+cp ../lib/crt0.o ../lib/libc.a tree/usr/lib/
+
+tar cf libh.tar -C tree/usr include lib
+tar cf base.tar -C tree .

@@ -1,0 +1,7 @@
+basename - strip directory from a pathname
+           remove a suffix from a name
+
+basename pathname [suffix]
+
+ pathname  pathname to strip
+ suffix    suffix to remove

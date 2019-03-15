@@ -1,0 +1,5 @@
+setpart -I
+dd if=/dev/rfd0 of=/dev/rhd1 bs=18432 count=80
+mount -r /dev/hd1 /mnt
+chroot /mnt hdsetup2
+umount /mnt

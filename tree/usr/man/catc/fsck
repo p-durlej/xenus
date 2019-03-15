@@ -1,0 +1,7 @@
+fsck - check and repair file systems
+
+fsck [-fvv] dev1...
+fsck [-fvv] -a
+
+ -f   fix inconsistencies
+ -vv  verbose operation

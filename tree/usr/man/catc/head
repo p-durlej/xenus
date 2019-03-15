@@ -1,0 +1,6 @@
+head - print initial lines of files
+
+head [-count] [file1...]
+
+ count  number of initial lines to print (default is 10)
+ file1  files to print (default is stdin)

@@ -1,0 +1,7 @@
+sh - command interpreter
+
+sh [-c command]
+
+ -c  execute command and exit (default is to run interactively)
+
+ command  command to execute

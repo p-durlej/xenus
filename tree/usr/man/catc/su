@@ -1,0 +1,5 @@
+su - change user identity
+
+su [user]
+
+ user  user account to change to

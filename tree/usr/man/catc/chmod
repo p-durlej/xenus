@@ -1,0 +1,22 @@
+chmod - change file mode (permissions)
+
+chmod augo+-rwxst file1...
+chmod mode file1...
+
+ a     set/reset mode bits for everyone
+ u     set/reset the owner's mode bits
+ g     set/reset the group mode bits
+ o     set/reset the other mode bits
+
+ +     set the mode bits
+ -     reset the mode bits
+
+ r     set/reset the read permission bit
+ w     set/reset the write permission bit
+ x     set/reset the file execute/directory search permission bit
+ s     set/reset the setuid/setgid bit
+ t     set/reset the sticky bit
+
+ mode  octal mode
+
+ file1... files to change

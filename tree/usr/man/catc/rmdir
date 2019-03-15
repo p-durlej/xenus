@@ -1,0 +1,5 @@
+rmdir - remove empty directories
+
+rmdir dir1...
+
+ dir1...  directories to remove

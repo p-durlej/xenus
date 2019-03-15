@@ -1,0 +1,47 @@
+<title>XENUS Unix-like OS</title>
+<img src='xenus.png' align=right>
+<h1>XENUS Unix-like OS</h1>
+<p>The XENUS OS is a multiuser, Unix-like operating system for the i386 (PC) platform.
+<h2>Requirements</h2>
+<li>40MiB or larger IDE hard disk
+<li>1.44 3.5" floppy drive
+<li>80386 CPU (387 not required)
+<li>2 MiB or more RAM
+<li>CGA, EGA, VGA, or compatible
+<li>optionally 8250, 16550, or 16550A-compatible serial ports (only needed for serial terminals)
+<h2>Getting</h2>
+<p>Distribution floppy image: <a href='xenus.img'>download</a>
+<p>Source code: <a href='xenus.tgz'>archive</a>, <a href='https://github.com/p-durlej/xenus'>GitHub</a>
+<h2>Building</h2>
+<p>The system should be built on an <b>OpenBSD 6.4/amd64</b> host. While other hosts may work, the system uses and is sensitive to the host compiler.
+<p>Additionally the <b>qemu</b> package must be installed on the host.
+<p>To build the system type "<b>make</b>" in the source code top directory.
+<h2>Installation</h2>
+<p><b><font color=red>Warning:</font></b> installing XENUS on a hard disk will wipe the partition table and overwrite existing data on the hard disk.
+<p>To install XENUS on a hard disk:
+<ol>
+<li>Boot from the distribution floppy
+<li>Login as <b>root</b>. There is no password by default
+<li>Type <b>hdsetup</b>
+<li>Type <b>halt</b>
+<li>Boot XENUS from the hard disk
+</ol>
+<h2>Multiboot installation</h2>
+<p>Multiboot installation allows XENUS to coexist with other operating systems on the same disk.
+<p>To install XENUS in a multiboot configuration:
+<ol>
+<li>Boot from the distribution floppy
+<li>Login as <b>root</b>. There is no password by default
+<li>Type <b>pcdisk -ac</b>. This command will create the XENUS partition and make it active.
+<li>If you want to install XENUS IPL in the MBR, type <b>pcdisk -b</b>.
+<li>Type <b>hdsetup</b>. This will overwrite the existing XENUS installation, if any.
+<li>Type <b>halt</b>
+<li>Boot XENUS from the hard disk
+</ol>
+<h2>Building</h2>
+<p>The system should be built on an <b>OpenBSD 6.4/amd64</b> host. While other hosts may work, the system uses and is sensitive to the host compiler.
+<p>Additionally the <b>qemu</b> package must be installed on the host.
+<p>To build the system type "<b>make</b>" in the source code top directory.
+<h2>Program development</h2>
+<p>Use the <b>cc-xenus</b> wrapper in the <b>hostcmd</b> directory if you want to compile programs for XENUS.
+<p>The system exposes an limited UNIX-like API.

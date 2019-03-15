@@ -1,0 +1,17 @@
+pcdisk - print and edit PC partition table
+
+pcdisk [-Xabcdgnp] [-D disk] [-A partition] [size]
+
+ -X  delete all partitions
+ -a  activate the XENUS partition
+ -b  install IPL
+ -c  create the XENUS partition
+ -d  delete the XENUS partition
+ -g  print disk geometry
+ -n  do not write back to disk
+ -p  print the partition table
+ -A  activate a partition
+ -D  specify disk device
+
+ disk  disk to edit (default /dev/rhd7)
+ size  size of the partition to create (default 80000 blocks)

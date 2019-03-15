@@ -1,0 +1,11 @@
+mkfs - make a new file system
+
+mkfs [-pv] [-s blocks] dev [bitmap [dir]]
+
+ -p   preserve owner and group when populating the fs
+ -v   verbose operation
+
+ dev     device name to make the fs on
+ blocks  fs size in blocks
+ bitmap  free block bitmap offset (default 2)
+ dir     source directory to populate the new fs with

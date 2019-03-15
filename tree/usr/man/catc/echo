@@ -1,0 +1,7 @@
+echo - print arguments to stdout
+
+echo [-n] string1...
+
+ -n  do not print the trailing newline
+
+ string1...  strings to print

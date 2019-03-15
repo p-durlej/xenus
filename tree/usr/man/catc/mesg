@@ -1,0 +1,8 @@
+mesg - enable or disable message reception
+
+mesg [yn]
+
+ y  enable message reception
+ n  disable message reception
+
+Without y or n, show the current status.

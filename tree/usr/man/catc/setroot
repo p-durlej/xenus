@@ -1,0 +1,6 @@
+setroot - permanently change root device
+
+setroot bootdev rootdev
+
+ bootdev  boot device to update
+ rootdev  new root device

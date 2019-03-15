@@ -1,0 +1,5 @@
+cat - concatenate and type files on stdout
+
+cat [file1...]
+
+ file1...  files to print on stdout (default is stdin)

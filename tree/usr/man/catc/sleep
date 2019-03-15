@@ -1,0 +1,5 @@
+sleep - delay for an amount of time
+
+sleep s
+
+ s  number of seconds to wait

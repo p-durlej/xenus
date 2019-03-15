@@ -1,0 +1,5 @@
+mkuser - create a new user account
+
+mkuser name
+
+ name  new user's login name

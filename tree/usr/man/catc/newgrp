@@ -1,0 +1,5 @@
+newgrp - change current user group
+
+newgrp [group]
+
+ group  group to change to (default is the user's group as in /etc/passwd)

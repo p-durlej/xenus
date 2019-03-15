@@ -1,0 +1,5 @@
+lc - multi-column directory listing
+
+lc [dir1...]
+
+ dir1...  directories to list
