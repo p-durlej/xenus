@@ -28,6 +28,7 @@
 #include <xenus/syscall.h>
 #include <xenus/config.h>
 #include <xenus/panic.h>
+#include <xenus/page.h>
 #include <xenus/umem.h>
 #include <xenus/fs.h>
 #include <sys/stat.h>
@@ -122,7 +123,7 @@ int pipe_open(struct inode *ino, int flags)
 {
 	if (!ino->pipe_buf)
 	{
-		ino->pipe_buf = malloc(PIPE_BUF);
+		ino->pipe_buf = palloc();
 		if (!ino->pipe_buf)
 			return ENOMEM;
 	}
@@ -278,7 +279,7 @@ int pipe_write(struct rwreq *req)
 			idle();
 			continue;
 		}
-		if (!ino->pipe_buf && !(ino->pipe_buf = malloc(PIPE_BUF)))
+		if (!ino->pipe_buf && !(ino->pipe_buf = palloc()))
 			return ENOMEM;
 		fucpy(&ch, req->buf++, 1);
 		pipe_putc(ino, ch);

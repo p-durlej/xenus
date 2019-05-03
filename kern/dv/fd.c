@@ -30,6 +30,7 @@
 #include <xenus/clock.h>
 #include <xenus/intr.h>
 #include <xenus/umem.h>
+#include <xenus/page.h>
 #include <xenus/fs.h>
 #include <xenus/io.h>
 #include <sys/dioc.h>
@@ -554,7 +555,7 @@ int rfd_read(struct rwreq *req)
 	err = uwchk(p, req->count);
 	if (err)
 		return err;
-	p += curr->base;
+	p += USER_BASE;
 	
 	blk = req->start / 512;
 	cnt = req->count / 512;
@@ -585,7 +586,7 @@ int rfd_write(struct rwreq *req)
 	err = urchk(p, req->count);
 	if (err)
 		return err;
-	p += curr->base;
+	p += USER_BASE;
 	
 	blk = req->start / 512;
 	cnt = req->count / 512;

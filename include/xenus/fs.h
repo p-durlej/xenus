@@ -66,22 +66,22 @@ struct super
 };
 
 #define BMAP_SIZE	64
-#define IBMAP_SIZE	55
+#define IBMAP_SIZE	57
 
 struct disk_inode
 {
-	uid_t	uid;
-	gid_t	gid;
-	dev_t	rdev;
-	off_t	size;
-	mode_t	mode;
-	blk_t	blocks;
+	blk_t	bmap[BMAP_SIZE];
+	blk_t	ibmap[IBMAP_SIZE];
 	time_t	atime;
 	time_t	mtime;
 	time_t	ctime;
-	nlink_t	nlink;
-	blk_t	bmap[BMAP_SIZE];
-	blk_t	ibmap[IBMAP_SIZE];
+	off_t	size;
+	u16_t	blocks;
+	u16_t	uid;
+	u16_t	gid;
+	u16_t	rdev;
+	u16_t	mode;
+	u16_t	nlink;
 };
 
 struct inode

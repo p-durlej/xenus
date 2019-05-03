@@ -280,10 +280,10 @@ void rs_init1(struct unit *u, int iobase, int irq)
 	u->iobase = iobase;
 	u->irq	  = irq;
 	
-	u->obuf = malloc(BUF_SIZE);
-	u->ibuf = malloc(BUF_SIZE);
+	u->obuf = sbrk(BUF_SIZE);
+	u->ibuf = sbrk(BUF_SIZE);
 	
-	if (!u->obuf || !u->ibuf)
+	if (u->obuf == (void *)-1 || u->ibuf == (void *)-1)
 		panic("rs buf");
 	
 	outb(u->iobase + 3, 3);

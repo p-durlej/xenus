@@ -25,10 +25,13 @@
  */
 
 #include <xenus/selector.h>
+#include <xenus/console.h>
 #include <xenus/process.h>
 #include <xenus/printf.h>
 #include <xenus/panic.h>
+#include <xenus/umem.h>
 #include <xenus/intr.h>
+#include <xenus/page.h>
 #include <xenus/io.h>
 #include <signal.h>
 
@@ -78,8 +81,11 @@ void asm_exc_17();
 void asm_exc_18();
 
 void asm_syscall();
+void asm_minix();
 
 void *irq_vect[16];
+
+extern unsigned xecode;
 
 void intr_set8259a(int irq0, int irq8)
 {
@@ -97,7 +103,7 @@ void intr_set8259a(int irq0, int irq8)
 	outb(A8259A_S + 1, 0xff);
 }
 
-void intr_setvect(int nr, void *addr, int dpl)
+void intr_setvect4(int nr, void *addr, unsigned seg, int dpl)
 {
 	extern u16_t idt[];
 	u16_t *p;
@@ -106,11 +112,16 @@ void intr_setvect(int nr, void *addr, int dpl)
 	
 	intr_disable();
 	p[0]  = (u32_t)addr;
-	p[1]  = KERN_CS;
+	p[1]  = seg;
 	p[2]  = 0x8e00;
 	p[2] |= dpl << 13;
 	p[3]  = (u32_t)addr >> 16;
 	intr_enable();
+}
+
+void intr_setvect(int nr, void *addr, int dpl)
+{
+	intr_setvect4(nr, addr, KERN_CS, dpl);
 }
 
 static void noirq(int nr)
@@ -172,6 +183,7 @@ void intr_init()
 	intr_setvect(18, asm_exc_18, 0);
 	
 	intr_setvect(0x80, asm_syscall, 3);
+	intr_setvect(0x21, asm_minix, 3);
 }
 
 void irq_ena(int nr)
@@ -227,31 +239,136 @@ void irq_set(int nr, void *p)
 
 void intr_irq(struct intr_regs *r, int nr)
 {
-	void (*p)(int nr);
+	void (*p)(int nr, struct intr_regs *r);
 	
 	p = irq_vect[nr];
-	p(nr);
+	p(nr, r);
 	wakeup();
+}
+
+static void prhex(unsigned v, int n)
+{
+	int i;
+	
+	v <<= (8 - n) * 4;
+	
+	for (i = 0; i < n; i++, v <<= 4)
+		con_putk("0123456789abcdef"[(v >> 28) & 15]);
+}
+
+static void preg(char *n, unsigned v)
+{
+	int i;
+	
+	printf("%s ", n);
+	prhex(v, 8);
+	printf(" ");
+}
+
+static void pregpair(char *n, unsigned s, unsigned v)
+{
+	int i;
+	
+	for (i = 0; *n; n++, i++)
+		con_putk(*n);
+	while (i++ < 7)
+		con_putk(' ');
+	
+	prhex(s, 4);
+	con_putk(':');
+	prhex(v, 8);
+	con_putk('\n');
+}
+
+static void prseg(char *n, unsigned v)
+{
+	printf("%s ", n);
+	prhex(v, 4);
+	printf(" ");
 }
 
 void dumpregs(struct intr_regs *r)
 {
-	printf("EAX    0x%x\n", r->eax);
-	printf("EBX    0x%x\n", r->ebx);
-	printf("ECX    0x%x\n", r->ecx);
-	printf("EDX    0x%x\n", r->edx);
-	printf("ESI    0x%x\n", r->esi);
-	printf("EDI    0x%x\n", r->edi);
-	printf("EBP    0x%x\n", r->ebp);
-	printf("DS     0x%x\n", r->ds);
-	printf("ES     0x%x\n", r->es);
-	printf("FS     0x%x\n", r->fs);
-	printf("GS     0x%x\n", r->gs);
-	printf("EIP    0x%x\n", r->eip);
-	printf("CS     0x%x\n", r->cs);
-	printf("EFLAGS 0x%x\n", r->eflags);
-	printf("ESP    0x%x\n", r->esp);
-	printf("SS     0x%x\n", r->ss);
+	unsigned cr0(void);
+	
+	unsigned a, v;
+	int i;
+	
+	preg("eax", r->eax);
+	preg("ebx", r->ebx);
+	preg("ecx", r->ecx);
+	preg("edx", r->edx);
+	con_putk('\n');
+	
+	preg("esi", r->esi);
+	preg("edi", r->edi);
+	preg("ebp", r->ebp);
+	preg("efl", r->eflags);
+	con_putk('\n');
+	
+	preg("cr0", cr0());
+	preg("cr2", cr2());
+	preg("err", xecode);
+	con_putk('\n');
+	
+	prseg("ds", r->ds);
+	prseg("es", r->es);
+	prseg("fs", r->fs);
+	prseg("gs", r->gs);
+	con_putk('\n');
+	
+	pregpair("cs:eip", r->cs, r->eip);
+	if (r->cs & 3)
+	{
+		pregpair("ss:esp", r->ss, r->esp);
+		
+		if (r->ss == USER_DS)
+		{
+			printf("stack");
+			for (i = 0, a = r->esp; i < 8; i++, a += 4)
+			{
+				if (fucpy(&v, (void *)a, 4))
+					break;
+				printf(" %x", v);
+			}
+			if (!i)
+				printf(" bad\n");
+			else
+				printf("\n");
+		}
+	}
+}
+
+void minix(struct intr_regs *r)
+{
+	unsigned stk[] =
+	{
+		r->ebx,
+		r->eip,
+		r->cs,
+	};
+	
+	if (!curr->compat)
+		goto fail;
+	
+	r->esp -= sizeof stk;
+	r->eip = curr->compat;
+	r->cs = USER_CS;
+	
+	if (tucpy((void *)r->esp, stk, sizeof stk))
+		goto fail;
+	
+	return;
+fail:
+	sendsig(curr, SIGABRT);
+}
+
+static void sendxsig(struct intr_regs *r, int nr, int sig)
+{
+	printf("pid %i comm %s trap %i user 0x%x\n", curr->pid, curr->comm, nr, r->eip);
+	dumpregs(r);
+	
+	sendksig(curr, sig);
 }
 
 void exception(struct intr_regs *r, int nr)
@@ -263,37 +380,37 @@ void exception(struct intr_regs *r, int nr)
 		panic("exception");
 	}
 	
-	printf("pid %i comm %s trap %i user 0x%x\n", curr->pid, curr->comm, nr, r->eip);
-	dumpregs(r);
-	
 	switch (nr)
 	{
 	case 0:
-		sendksig(curr, SIGFPE);
+		sendxsig(r, nr, SIGFPE);
 		break;
 	case 6:
-		sendksig(curr, SIGILL);
+		sendxsig(r, nr, SIGILL);
 		break;
 	case 1:
 	case 3:
 	case 4:
 	case 5:
 	case 17:
-		sendksig(curr, SIGTRAP);
+		sendxsig(r, nr, SIGTRAP);
 		break;
 	case 7:
 	case 8:
 	case 13:
-		sendksig(curr, SIGBUS);
+		sendxsig(r, nr, SIGBUS);
 		break;
 	case 9:
 	case 11:
 	case 12:
+		sendxsig(r, nr, SIGSEGV);
+		break;
 	case 14:
-		sendksig(curr, SIGSEGV);
+		if (ufault(cr2()))
+			sendxsig(r, nr, SIGSEGV);
 		break;
 	case 16:
-		sendksig(curr, SIGFPE);
+		sendxsig(r, nr, SIGFPE);
 		break;
 	case 2:
 		panic("nmi");

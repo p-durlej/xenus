@@ -29,13 +29,14 @@
 #include <xenus/console.h>
 #include <xenus/printf.h>
 #include <xenus/clock.h>
+#include <xenus/page.h>
+#include <xenus/ualloc.h>
 #include <xenus/umem.h>
 #include <xenus/intr.h>
 #include <sys/types.h>
+#include <string.h>
 #include <stddef.h>
 #include <errno.h>
-
-unsigned malloc_gfree(void);
 
 void *systab[]=
 {
@@ -102,6 +103,11 @@ void *systab[]=
 	sys__dmesg,
 	sys_sleep,
 	sys__killu,
+	sys_utime,
+	sys__newregion,
+	sys__setcompat,
+	sys_waitpid,
+	sys_times,
 };
 
 struct intr_regs *uregs;
@@ -155,7 +161,7 @@ int sys__sysmesg(char *msg, unsigned int len)
 		return -1;
 	}
 	
-	p = msg + curr->base;
+	p = msg + USER_BASE;
 	while (len--)
 		con_putc(*p++);
 	return 0;
@@ -188,12 +194,38 @@ int sys_getgid(void)
 
 int sys_brk(void *addr)
 {
-	if ((unsigned int)addr > uregs->esp)
+	unsigned e = ((unsigned)addr + 4095) >> 12;
+	unsigned *pt = curr->ptab;
+	int i;
+	
+	if ((unsigned)addr > uregs->esp)
 	{
 		uerr(ENOMEM);
 		return -1;
 	}
-	curr->brk = addr;
+	
+	if ((unsigned)addr > USER_SIZE)
+	{
+		uerr(EFAULT);
+		return -1;
+	}
+	
+	for (i = 0; i < e; i++)
+		if (!pt[i])
+		{
+			void *p = zpalloc();
+			
+			if (!p)
+			{
+				uerr(ENOMEM);
+				return -1;
+			}
+			
+			pt[i] = (unsigned)p | 7;
+			curr->size++;
+		}
+	
+	curr->brk = (unsigned)addr;
 	return 0;
 }
 
@@ -260,7 +292,7 @@ int sys__iopl(void)
 
 unsigned sys__mfree(void)
 {
-	return malloc_gfree();
+	return pg_fcount << 12;
 }
 
 int sys_reboot(int mode)
@@ -308,21 +340,41 @@ int sys__uptime(void)
 void *sys_sbrk(ptrdiff_t incr)
 {
 	char *addr = (char *)curr->brk + incr;
-	char *base;
+	void *base = (void *)curr->brk;
 	
-	if (incr < 0 || incr >= 0x100000)
+	if (incr < 0 || incr >= USER_SIZE)
 	{
 		uerr(EINVAL);
 		return (void *)-1;
 	}
 	
-	if ((unsigned int)addr > uregs->esp)
+	if ((unsigned)addr > uregs->esp)
 	{
 		uerr(ENOMEM);
 		return (void *)-1;
 	}
 	
-	base = curr->brk;
-	curr->brk = addr;
+	if (sys_brk(addr))
+		return (void *)-1;
+	
 	return base;
+}
+
+int sys__newregion(void *base, size_t len)
+{
+	int err;
+	
+	err = newregion((unsigned)base, (unsigned)base + len);
+	if (err)
+	{
+		uerr(err);
+		return -1;
+	}
+	return 0;
+}
+
+int sys__setcompat(void *entry)
+{
+	curr->compat = (unsigned)entry;
+	return 0;
 }

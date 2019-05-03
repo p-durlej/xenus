@@ -3,6 +3,7 @@ pcdisk - print and edit PC partition table
 pcdisk [-Xabcdgnp] [-D disk] [-A partition] [size]
 
  -X  delete all partitions
+ -Z  wipe the disk
  -a  activate the XENUS partition
  -b  install IPL
  -c  create the XENUS partition

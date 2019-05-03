@@ -52,4 +52,6 @@ typedef u32_t	blk_t;
 typedef blk_t	blkcnt_t;
 typedef u32_t	blksize_t;
 
+typedef unsigned clock_t;
+
 #endif

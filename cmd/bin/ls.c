@@ -232,11 +232,11 @@ void pdirent(struct dent *de)
 			perm[9] = (de->mode & 0001) ? 't' : 'T';
 		
 		if (ino)
-			printf("%8i ", (int)de->ino);
+			printf("%6i ", (int)de->ino);
 		
 		getugname(de->ugid);
 		
-		printf("%s %i ", perm, de->nlink);
+		printf("%s %2i ", perm, de->nlink);
 		printf("%-8s ", ugname);
 		
 		switch (S_IFMT & de->mode)

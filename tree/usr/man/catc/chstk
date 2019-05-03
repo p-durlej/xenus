@@ -1,0 +1,6 @@
+chstk - print and change stack allocation of executables
+
+chstk [-newsize] binfile...
+
+ newsize  new stack size
+ binfile  executables to process

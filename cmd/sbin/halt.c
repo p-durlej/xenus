@@ -34,30 +34,45 @@ int reboot(int mode);
 
 static void usage(void)
 {
-	fputs("halt [-hr]\n", stderr);
+	char msg[] = "halt [-hr]\n";
+	
+	write(2, msg, sizeof msg - 1);
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int i;
+	int mode = 0;
+	char *p;
 	
 	if (geteuid())
 	{
-		fputs("Not permitted\n", stderr);
+		char msg[] = "Not permitted\n";
+		
+		write(2, msg, sizeof msg - 1);
 		return 1;
 	}
 	
+	p = strrchr(argv[0], '/');
+	if (p)
+		p++;
+	else
+		p = argv[0];
+	
+	if (!strcmp(p, "reboot"))
+		mode = 1;
+	
 	if (argc > 2)
 		usage();
-	if (argc < 2)
-		reboot(0);
 	
-	if (!strcmp(argv[1], "-h"))
-		reboot(0);
-	if (!strcmp(argv[1], "-r"))
-		reboot(1);
+	if (argc > 1)
+	{
+		if (!strcmp(argv[1], "-h"))
+			mode = 0;
+		if (!strcmp(argv[1], "-r"))
+			mode = 1;
+	}
 	
-	usage();
+	reboot(mode);
 	return 1;
 }

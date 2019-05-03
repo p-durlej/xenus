@@ -34,7 +34,7 @@ struct utsname utsname =
 {
 	"xenus",
 	"xenus",
-	"4.11",
+	"5.0",
 	__DATE__ " " __TIME__,
 	"i386"
 };

@@ -91,6 +91,18 @@ static void redraw(void)
 	gotoxy(x, y - t);
 }
 
+static void rlinebuf(void)
+{
+	int len = cols - 1;
+	
+	while (len > 0 && linebuf[len - 1] == ' ')
+		len--;
+	
+	gotoxy(0, y - t);
+	output(linebuf, len);
+	cleol();
+}
+
 static int insert(void)
 {
 	int len, len2;
@@ -113,7 +125,7 @@ again:
 		case '\n':
 		case 27:
 			goto store;
-		case 'H' & 31:
+		case '\b':
 		case 127:
 			if (!x)
 				break;
@@ -123,10 +135,7 @@ again:
 			x--;
 			
 			if (fast)
-			{
-				gotoxy(0, y - t);
-				output(linebuf, cols);
-			}
+				rlinebuf();
 			else
 			{
 				gotoxy(x, y);
@@ -137,8 +146,7 @@ again:
 			dirty = 1;
 			break;
 		case 'L' & 31:
-			gotoxy(0, y - t);
-			output(linebuf, cols);
+			rlinebuf();
 			ucurs();
 			break;
 		default:
@@ -151,10 +159,7 @@ again:
 			linebuf[x] = c;
 			
 			if (fast)
-			{
-				gotoxy(0, y - t);
-				output(linebuf, cols);
-			}
+				rlinebuf();
 			else
 			{
 				gotoxy(x, y - t);
@@ -166,8 +171,7 @@ again:
 		}
 	
 store:
-	gotoxy(0, y - t);
-	output(linebuf, cols);
+	rlinebuf();
 	ucurs();
 	
 	for (p2 = linebuf + cols - 1; p2 > linebuf; p2--)
@@ -388,6 +392,7 @@ static void command(void)
 		switch (c)
 		{
 		case '\b':
+		case 127:
 			if (!cnt)
 				break;
 			gotoxy(cnt--, rows - 1);

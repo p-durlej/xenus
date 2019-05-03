@@ -42,8 +42,9 @@ struct procinfo
 	dev_t		tty;
 	int		time_slice;
 	unsigned int	size;
-	unsigned int	base;
+	unsigned int	ptab;
 	char		comm[NAME_MAX + 1];
+	char		compat[NAME_MAX + 2];
 };
 
 #endif

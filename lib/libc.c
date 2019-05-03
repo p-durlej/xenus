@@ -45,7 +45,6 @@ char __libc_panic_msg[]="c ";
 
 int main(int argc, char **argv, char **envp);
 
-void __libc_malloc_init(void);
 void __libc_stdio_init(void);
 
 void __libc_panic(char *desc)
@@ -58,7 +57,6 @@ void __libc_panic(char *desc)
 
 void __libc_init()
 {
-	__libc_malloc_init();
 	__libc_stdio_init();
 }
 

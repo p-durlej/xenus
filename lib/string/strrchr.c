@@ -31,7 +31,7 @@ char *strrchr(char *s, int c)
 	int i;
 	
 	for (i = strlen(s); i >= 0; i--)
-		if (s[i] == c)
+		if (s[i] == (char)c)
 			return s + i;
 	
 	return NULL;

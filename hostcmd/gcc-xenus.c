@@ -56,7 +56,9 @@ void add_str(char ***l, char *s)
 int main(int argc, char **argv)
 {
 	char **cc_arg;
+	char *crt = SYSTEM "/lib/crt0.o";
 	int eflag = 0;
+	int high = 0;
 	int link = 1;
 	int i;
 	
@@ -72,8 +74,28 @@ int main(int argc, char **argv)
 		{
 			memmove(argv + i, argv + i + 1, (argc - i) * sizeof *argv);
 			argc--;
+			i--;
 			
 			eflag = 1;
+			continue;
+		}
+		if (!strcmp(argv[i], "-R"))
+		{
+			memmove(argv + i, argv + i + 1, (argc - i) * sizeof *argv);
+			argc--;
+			i--;
+			
+			crt = SYSTEM "/lib/rawstart.o";
+			continue;
+		}
+		if (!strcmp(argv[i], "-H"))
+		{
+			memmove(argv + i, argv + i + 1, (argc - i) * sizeof *argv);
+			argc--;
+			i--;
+			
+			high = 1;
+			continue;
 		}
 	}
 	add_str(&cc_arg, GCC);
@@ -91,13 +113,20 @@ int main(int argc, char **argv)
 	{
 		add_str(&cc_arg, "-L" SYSTEM "/lib");
 		add_str(&cc_arg, "-nostartfiles");
-		add_str(&cc_arg, SYSTEM "/lib/crt0.o");
+		add_str(&cc_arg, crt);
 		add_str(&cc_arg, "-Xlinker");
 		add_str(&cc_arg, "-melf_i386");
 		add_str(&cc_arg, "-Xlinker");
 		add_str(&cc_arg, "-T");
 		add_str(&cc_arg, "-Xlinker");
 		add_str(&cc_arg, SYSTEM "/lds");
+		if (high)
+		{
+			add_str(&cc_arg, "-Xlinker");
+			add_str(&cc_arg, "-Ttext");
+			add_str(&cc_arg, "-Xlinker");
+			add_str(&cc_arg, "0x300000");
+		}
 		if (!eflag)
 		{
 			add_str(&cc_arg, "-Xlinker");

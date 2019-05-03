@@ -49,7 +49,7 @@ char termvar[32] = "TERM=XXX";
 
 char *nenv[] =
 {
-	"PATH=:/bin:/usr/bin",
+	"PATH=:/bin:/usr/bin:/usr/mnx",
 	"HOME=/",
 	NULL, /* TERM */
 	NULL
@@ -258,7 +258,7 @@ void login(char *user, char *passwd)
 	nenv[1] = p;
 	
 	if (!pw->pw_uid)
-		nenv[0] = "PATH=/bin:/usr/bin";
+		nenv[0] = "PATH=/bin:/usr/bin:/usr/mnx";
 	
 	setgid(pw->pw_gid);
 	setuid(pw->pw_uid);

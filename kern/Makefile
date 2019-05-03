@@ -26,7 +26,7 @@
 
 include ../mk/kern.mk
 
-all: kern # kern.elf
+all: kern kern.elf
 
 CC = ../hostcmd/gcc-xenus -Os -D_KERN_ -I../include
 
@@ -53,9 +53,11 @@ DRV_O =	dv/condev.o	\
 	dv/fd.o		\
 	dv/rs.o
 
-KERN_O = asmstart.o asmintr.o intr.o start.o console.o pckbd.o	  \
-         clock.o process.o umem.o syscall.o exec.o fork.o uname.o \
-         $(FS_O) $(BLK_O) $(DRV_O) $(LIB_O) ttyld.o sigret.o
+PAGE_O = asmpage.o page.o
+
+KERN_O = asmstart.o asmintr.o intr.o start.o console.o pckbd.o		   \
+         clock.o process.o ualloc.o umem.o syscall.o exec.o fork.o uname.o \
+         $(PAGE_O) $(FS_O) $(BLK_O) $(DRV_O) $(LIB_O) ttyld.o sigret.o
 
 kern: $(KERN_O)
 	ld -T lds -m elf_i386 --oformat binary $(KERN_O) -o kern

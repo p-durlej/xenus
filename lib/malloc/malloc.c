@@ -29,9 +29,14 @@
 
 #include "malloc.h"
 
+struct mhead mhead =
+{
+	.size = sizeof(struct mhead),
+};
+
 void *malloc(size_t size)
 {
-	struct mhead *mh = __libc_mhead;
+	struct mhead *mh = &mhead;
 	struct mhead *last;
 	
 	size += sizeof(struct mhead);

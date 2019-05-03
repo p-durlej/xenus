@@ -88,3 +88,7 @@
 #define SYS_sleep	61
 #define SYS__killu	62
 #define SYS_utime	63
+#define SYS__newregion	64
+#define SYS__setcompat	65
+#define SYS_waitpid	66
+#define SYS_times	67

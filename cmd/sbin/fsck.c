@@ -100,10 +100,11 @@ static void bused(blk_t blk)
 	bam[blk / 8] |= 1 << (blk & 7);
 }
 
-static void cdirb(ino_t dir, blk_t blk)
+static int cdirb(ino_t dir, blk_t blk)
 {
 	struct dirent *de;
 	char buf[512];
+	int size = 0;
 	int i;
 	
 	rdblk(buf, blk);
@@ -112,6 +113,7 @@ static void cdirb(ino_t dir, blk_t blk)
 	{
 		if (!de->d_ino)
 			continue;
+		size = (i + 1) * sizeof *de;
 		
 		if (vflag > 1)
 			printf("%5i %s\n", de->d_ino, de->d_name);
@@ -120,26 +122,39 @@ static void cdirb(ino_t dir, blk_t blk)
 		{
 			printf("de %i ino %i\n", blk, de->d_ino);
 			if (!fflag)
-				return;
+				return size;
 			
 			memset(de, 0, sizeof *de);
 			wrblk(buf, blk);
-			return;
+			return size;
 		}
+		
 		if (strncmp(de->d_name, ".",  NAME_MAX + 1) &&
 		    strncmp(de->d_name, "..", NAME_MAX + 1))
 			cinode(dir, de->d_ino, de->d_name);
 	}
+	return size;
 }
 
 static void cdir(struct disk_inode *di, ino_t ino)
 {
 	struct dirent *de;
+	int size = 0;
 	int i;
 	
 	for (i = 0; i < BMAP_SIZE; i++)
 		if (di->bmap[i])
-			cdirb(ino, di->bmap[i]);
+			size = i * BLK_SIZE + cdirb(ino, di->bmap[i]);
+	
+	if (di->size < size)
+	{
+		printf("dir %i size %i real %i\n", ino, di->size, size);
+		if (fflag)
+		{
+			di->size = size;
+			wrblk(di, ino);
+		}
+	}
 }
 
 static void cinode(ino_t dir, ino_t ino, char *name)

@@ -24,15 +24,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "malloc.h"
+#ifndef _SYS_TIMES_H
+#define _SYS_TIMES_H
 
-void free(void *ptr)
+#include <sys/types.h>
+
+struct tms
 {
-	struct mhead *mh = ptr;
-	
-	if (!mh)
-		return;
-	
-	mh--;
-	mh->free = 1;
-}
+	clock_t tms_utime;
+	clock_t tms_stime;
+	clock_t tms_cutime;
+	clock_t tms_cstime;
+};
+
+clock_t times(struct tms *tms);
+
+#endif

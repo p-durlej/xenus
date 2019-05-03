@@ -26,9 +26,12 @@
 
 #include <sys/types.h>
 
+pid_t waitpid(pid_t pid, int *status, int options);
 pid_t wait(int *status);
 
 #define WEXITSTATUS(v)	((v) >> 8)
 #define WTERMSIG(v)	((v) & 0x7f)
 #define WIFEXITED(v)	(!WTERMSIG(v))
 #define WCOREDUMP(v)	((v) & 0x80)
+
+#define WNOHANG		1

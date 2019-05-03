@@ -24,22 +24,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <xenus/config.h>
+#include <sys/times.h>
+#include <sys/wait.h>
 #include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
 
-#include "malloc.h"
-
-void __libc_panic(char *msg);
-
-struct mhead *__libc_mhead;
-
-void __libc_malloc_init()
+static void ptime(clock_t t)
 {
-	__libc_mhead = sbrk(sizeof(struct mhead));
+	unsigned i, f;
 	
-	if ((int)__libc_mhead == -1)
-		__libc_panic("malloc init");
+	f = t % HZ;
+	i = t / HZ;
 	
-	__libc_mhead->size = sizeof(struct mhead);
-	__libc_mhead->free = 0;
-	__libc_mhead->next = 0;
+	printf("%6i.%02i", i, f * 100 / HZ);
+}
+
+int main(int argc, char **argv)
+{
+	struct tms tms;
+	clock_t t0, t;
+	pid_t pid;
+	int st;
+	
+	if (argc < 2)
+	{
+		fputs("time command [arg...]\n", stderr);
+		return 1;
+	}
+	
+	t0 = times(NULL);
+	pid = fork();
+	if (!pid)
+	{
+		execvp(argv[1], argv + 1);
+		perror(argv[1]);
+		return 127;
+	}
+	if (pid < 0)
+	{
+		perror(NULL);
+		return 127;
+	}
+	
+	while (wait(&st) != pid);
+	t = times(&tms);
+	
+	fputs("real ", stdout);
+	ptime(t - t0);
+	fputs("\nuser ", stdout);
+	ptime(tms.tms_cutime);
+	fputs("\nsys  ", stdout);
+	ptime(tms.tms_cstime);
+	putchar('\n');
+	
+	return 0;
 }

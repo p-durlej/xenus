@@ -30,4 +30,4 @@ int uset(void *ptr, int c, unsigned int len);
 int fustr(char *dst, char *src, unsigned int len);
 int urchk(void *ptr, unsigned int len);
 int uwchk(void *ptr, unsigned int len);
-int usdup(char **dst, char *src, unsigned len);
+int ufault(unsigned addr);

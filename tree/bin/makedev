@@ -20,6 +20,7 @@ mknod	rhd1	c 9 1
 mknod	rhd2	c 9 2
 mknod	rhd3	c 9 3
 mknod	rhd4	c 9 4
+mknod	rhd5	c 9 5
 mknod	rhd7	c 9 7
 mknod	rhd8	c 9 8
 
@@ -28,6 +29,7 @@ mknod	hd1	b 0 1
 mknod	hd2	b 0 2
 mknod	hd3	b 0 3
 mknod	hd4	b 0 4
+mknod	hd5	b 0 5
 mknod	hd7	b 0 7
 mknod	hd8	b 0 8
 mknod	fd0	b 2 0

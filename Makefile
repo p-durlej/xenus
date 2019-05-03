@@ -42,6 +42,14 @@ clean:
 
 accept:
 	cp disks/xenus.img www/
+	gzip < www/xenus.img > www/xenus.img.gz
+	gzip < www/mnx.img > www/mnx.img.gz
+	gzip < www/sdk.img > www/sdk.img.gz
+	git clone . www/xenus
+	rm -rf www/xenus/www/xenus.tgz
+	rm -rf www/xenus/.git
+	tar zcf www/xenus.tgz -C www xenus
+	rm -rf www/xenus
 	git add .
 	git commit -m "Import a new build"
 
@@ -59,11 +67,20 @@ run-fd: disks/xenus.img disks/disk.img disks/flp2.img
 run-hd: disks/xenus.img disks/disk.img disks/flp2.img
 	qemu-system-i386 -curses -fda disks/xenus.img -fdb disks/flp2.img -hda disks/disk.img -m 8 -boot c -serial telnet:0.0.0.0:8000,server,nowait
 
+run-hd-sdk: disks/xenus.img disks/disk.img
+	qemu-system-i386 -curses -fda disks/xenus.img -fdb ~/xmnx/sdk.img -hda disks/disk.img -m 8 -boot c -serial telnet:0.0.0.0:8000,server,nowait
+
 run-sdl-fd: disks/xenus.img disks/disk.img disks/flp2.img
 	qemu-system-i386 -display sdl -fda disks/xenus.img -fdb disks/flp2.img -hda disks/disk.img -m 2 -boot a
 
 run-sdl-hd: disks/xenus.img disks/disk.img disks/flp2.img
 	qemu-system-i386 -display sdl -fda disks/xenus.img -fdb disks/flp2.img -hda disks/disk.img -m 8 -boot c
 
-daemon: disks/xenus.img disks/disk.img disks/flp2.img
+daemon-test: disks/xenus.img disks/disk.img disks/flp2.img
 	qemu-system-i386 -display none -daemonize -fda disks/xenus.img -fdb disks/flp2.img -hda disks/disk.img -m 8 -boot c -serial telnet:0.0.0.0:8000,server,nowait
+
+upgrade: www/xenus.img www/mnx.img www/sdk.img disks/disk.img
+	qemu-system-i386 -curses -fda www/xenus.img -fdb www/sdk.img -hda disks/disk.img -m 8 -boot a -serial telnet:0.0.0.0:8000,server,nowait
+
+daemon: www/xenus.img disks/disk.img disks/flp2.img
+	qemu-system-i386 -display none -daemonize -fda www/xenus.img -fdb disks/flp2.img -hda disks/disk.img -m 8 -boot c -serial telnet:0.0.0.0:8000,server,nowait

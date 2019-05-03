@@ -58,14 +58,13 @@ static void xenus_cleol(void)
 	int cnt = cols;
 	int i;
 	
-	if (vt_y >= rows - 1)
-		cnt--;
-	
-	for (i = vt_x; i < cnt; i++)
-		putchar(' ');
-	
-	vt_x = 0;
-	vt_y++;
+	printf("\033C");
+	if (vt_y < rows - 1)
+	{
+		printf("\r\n");
+		vt_x = 0;
+		vt_y++;
+	}
 }
 
 static void xenus_cleos(void)

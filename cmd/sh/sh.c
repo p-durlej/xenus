@@ -123,7 +123,7 @@ static int cmd_noop(int argc, char **argv)
 
 static int cmd_exit(int argc, char **argv)
 {
-	int x = waitexit(lastst);
+	int x = lastst;
 	
 	if (argc > 1)
 		x = atoi(argv[1]);
@@ -897,7 +897,7 @@ int main(int argc, char **argv)
 	if (argc > 2 && !strcmp(argv[1], "-c"))
 	{
 		doline(argv[2]);
-		return waitexit(lastst);
+		return lastst;
 	}
 	
 	if (argc > 1)
@@ -925,5 +925,5 @@ int main(int argc, char **argv)
 	
 	copyenv();
 	loop();
-	return waitexit(lastst);
+	return lastst;
 }

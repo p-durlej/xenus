@@ -48,11 +48,12 @@ int proc_read(struct rwreq *req)
 		return 0;
 	}
 	
-	pi.base		= proc[i].base;
-	pi.size		= proc[i].size;
+	memset(&pi, 0, sizeof pi);
+	pi.ptab		= (unsigned)proc[i].ptab;
+	pi.size		= proc[i].size << 12;
 	pi.pid		= proc[i].pid;
 	pi.psid		= proc[i].psid;
-	pi.ppid		= proc[i].parent->pid;
+	pi.ppid		= proc[i].parent ? proc[i].parent->pid : 0;
 	pi.euid		= proc[i].euid;
 	pi.egid		= proc[i].egid;
 	pi.ruid		= proc[i].ruid;
@@ -62,6 +63,18 @@ int proc_read(struct rwreq *req)
 		pi.tty = proc[i].tty->d.rdev;
 	else
 		pi.tty = -1;
+	
+	if (proc[i].cpname)
+	{
+		char *p;
+		
+		p = strrchr(proc[i].cpname, '/') + 1;
+		if (p == (void *)1)
+			p = proc[i].cpname;
+		
+		strncpy(pi.compat, p, sizeof pi.compat - 1);
+	}
+	
 	memcpy(&pi.comm, &proc[i].comm, sizeof(pi.comm));
 	pi.comm[sizeof(pi.comm) - 1] = 0;
 	err = tucpy(req->buf, &pi, sizeof(pi));

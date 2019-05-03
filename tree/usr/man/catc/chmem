@@ -1,6 +1,0 @@
-chmem - print and change memory allocation of executables
-
-chmem [-newsize] binfile...
-
- newsize  new heap + stack size
- binfile  executables to process

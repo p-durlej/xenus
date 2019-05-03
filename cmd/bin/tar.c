@@ -270,6 +270,23 @@ static void list1(int fd, struct tar_hdr *h, char *path, off_t size)
 		printf("%s\n", path);
 }
 
+static void shdr(int fd, void *hdr)
+{
+	ssize_t wcnt;
+	
+	wcnt = write(fd, hdr, 512);
+	if (wcnt < 0)
+	{
+		perror(tar_path);
+		exit(1);
+	}
+	if (wcnt != 512)
+	{
+		fprintf(stderr, "%s: Short write\n", tar_path);
+		exit(1);
+	}
+}
+
 static void sreg(int fd, struct tar_hdr *hd, char *path, struct stat *st)
 {
 	char buf[32768];
@@ -284,6 +301,8 @@ static void sreg(int fd, struct tar_hdr *hd, char *path, struct stat *st)
 		xit = 1;
 		return;
 	}
+	
+	shdr(fd, hd);
 	
 	while (rcnt = read(sfd, buf, sizeof buf), rcnt > 0)
 	{
@@ -317,7 +336,15 @@ static void sdir(int fd, struct tar_hdr *hd, char *path)
 	struct dirent *de;
 	DIR *d;
 	
+	shdr(fd, hd);
+	
 	d = opendir(path);
+	if (!d)
+	{
+		perror(path);
+		xit = 1;
+		return;
+	}
 	
 	while (errno = 0, de = readdir(d), de)
 	{
@@ -341,6 +368,7 @@ static void sdir(int fd, struct tar_hdr *hd, char *path)
 
 static void sspec(int fd, struct tar_hdr *hd, char *path, struct stat *st)
 {
+	shdr(fd, hd);
 }
 
 static void init_head(struct tar_hdr *hd, struct stat *st, char *path)
@@ -394,7 +422,6 @@ static void store1(int fd, char *path)
 	union { struct tar_hdr h; char buf[512]; } u;
 	struct namenode *nn;
 	struct stat st;
-	ssize_t wcnt;
 	int link = 0;
 	
 	if (stat(path, &st))
@@ -425,18 +452,6 @@ static void store1(int fd, char *path)
 	}
 	
 	cksum(&u.h);
-	
-	wcnt = write(fd, &u, sizeof u);
-	if (wcnt < 0)
-	{
-		perror(tar_path);
-		exit(1);
-	}
-	if (wcnt != sizeof u)
-	{
-		fprintf(stderr, "%s: Short write\n", tar_path);
-		exit(1);
-	}
 	
 	if (!link)
 		switch (st.st_mode & S_IFMT)
@@ -745,7 +760,7 @@ static void extract1(int fd, struct tar_hdr *h, char *path, off_t size)
 
 static void usage(void)
 {
-	fputs("tar {crtux}[pvv][f archive] [file...]\n", stderr);
+	fputs("tar {crtux}[01pvv][f archive] [file...]\n", stderr);
 	exit(1);
 }
 
@@ -760,6 +775,12 @@ static int parse_opts(int argc, char **argv)
 	for (p = argv[0]; *p; p++)
 		switch (*p)
 		{
+		case '0':
+			tar_path = "/dev/rfd0"; /* The default anyway */
+			break;
+		case '1':
+			tar_path = "/dev/rfd1";
+			break;
 		case 'c':
 		case 'r':
 		case 't':

@@ -39,13 +39,19 @@ extern int rootro;
 
 int errno = 0;
 
-void malloc_init(void *start, size_t size);
-void malloc_add(void *start, size_t size);
+void __libc_malloc_init();
+void pg_add(unsigned base, unsigned size);
+void pg_init(size_t memsize);
 void pckbd_init(void);
 void con_init(void);
 void rs_init(void);
 void proc_init(void);
 void banner(void);
+
+void __libc_panic(char *msg)
+{
+	panic(msg);
+}
 
 static void ena20(void)
 {
@@ -71,12 +77,13 @@ static void hw_init(void)
 	low -= lowb;
 	
 	ena20();
-	malloc_init((void *)0x100000, mem);
-	malloc_add((void *)lowb, low);
 	intr_init();
 	clock_init();
 	pckbd_init();
 	con_init();
+	pg_init(mem);
+	pg_add(lowb, low);
+	pg_add(0x2000, 0x5000);
 	rs_init();
 	banner();
 	

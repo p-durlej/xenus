@@ -27,10 +27,12 @@
 #include <xenus/selector.h>
 #include <xenus/process.h>
 #include <xenus/syscall.h>
-#include <xenus/malloc.h>
+#include <xenus/printf.h>
 #include <xenus/config.h>
+#include <xenus/ualloc.h>
 #include <xenus/umem.h>
 #include <xenus/exec.h>
+#include <xenus/page.h>
 #include <xenus/fs.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -52,15 +54,16 @@ int loadhdr(struct inode *ino, struct exehdr *hdr)
 	if (err)
 		return err;
 	if (!b)
-		return ENOEXEC;
-	memcpy(hdr, b->data, sizeof(struct exehdr));
+	{
+		memset(hdr, 0, sizeof *hdr);
+		return 0;
+	}
+	memcpy(hdr, b->data, sizeof *hdr);
 	blk_put(b);
-	if (memcmp(hdr->magic, "XENUS386", 8))
-		return ENOEXEC;
 	return 0;
 }
 
-int loadbin(struct inode *ino)
+int loadbin(struct inode *ino, unsigned base)
 {
 	unsigned size = ino->d.size;
 	unsigned off = 0;
@@ -80,9 +83,9 @@ int loadbin(struct inode *ino)
 		if (err)
 			return err;
 		if (!blk)
-			err = uset((char *)off, 0, l);
+			err = uset((char *)base + off, 0, l);
 		else
-			err = blk_upread(ino->sb->dev, blk, 0, l, (char *)off);
+			err = blk_upread(ino->sb->dev, blk, 0, l, (char *)base + off);
 		if (err)
 			return err;
 		
@@ -94,71 +97,184 @@ int loadbin(struct inode *ino)
 
 int do_exec(char *name, char *arg, char *env)
 {
+	unsigned arga, enva, siga, stka, nama;
+	char *compat = NULL;
+	char *oname = NULL;
+	char *narg = NULL;
 	struct exehdr hdr;
 	struct inode *ino;
-	unsigned int size;
+	unsigned *pt = curr->ptab;
 	struct rwreq rw;
 	int err;
+	int i;
 	
+again:
 	err = dir_traverse(name, 0, &ino);
 	if (err)
+	{
+		if (err == ENOENT && oname)
+			return ENOEXEC;
 		return err;
-	if (!S_ISREG(ino->d.mode))
+	}
+	
+	if (!S_ISREG(ino->d.mode) || !(ino->d.mode & 0111))
 	{
 		inode_put(ino);
-		return EPERM;
+		return EACCES;
 	}
+	
 	err = inode_chkperm(ino, X_OK);
 	if (err)
 	{
 		inode_put(ino);
 		return err;
 	}
+	
 	err = loadhdr(ino, &hdr);
 	if (err)
 	{
 		inode_put(ino);
 		return err;
 	}
-	size = hdr.end + hdr.extra + strlen(arg) + strlen(env) + 2 + (&sigrete - &sigret);
-	if (size > 0x100000)
+	
+	if (memcmp(hdr.magic, "XENUS386", 8))
 	{
 		inode_put(ino);
+		
+		for (i = 0; i < sizeof hdr.magic && hdr.magic[i]; i++)
+		{
+			unsigned c = hdr.magic[i];
+			
+			if (c >= 0x20 && c < 0x80)
+				continue;
+			if (c == '\n' || c == '\t')
+				continue;
+			break;
+		}
+		if (i >= sizeof hdr.magic || !hdr.magic[i])
+		{
+			if (narg)
+			{
+				pfree(narg);
+				return ENOEXEC;
+			}
+			
+			if (strlen(arg) + sizeof SHELL > ARG_MAX)
+				return E2BIG;
+			
+			arg = strchr(arg, '\377') + 1;
+			if (arg == (void *)1)
+				return EINVAL;
+			
+			narg = palloc();
+			if (!narg)
+				return ENOMEM;
+			
+			strcpy(narg, SHELL "\377");
+			strcat(narg, name);
+			strcat(narg, "\377");
+			strcat(narg, arg);
+			arg = narg;
+			name = SHELL;
+			goto again;
+		}
+		
+		if (hdr.magic[0] == 1 && hdr.magic[1] == 3)
+			compat = "/usr/compat/minix";
+		
+		if (!compat)
+		{
+			pfree(narg);
+			return ENOEXEC;
+		}
+		
+		if (oname)
+		{
+			printf("bad %s\n", name);
+			pfree(narg);
+			return ENOEXEC;
+		}
+		oname = name;
+		name = compat;
+		goto again;
+	}
+	
+	if (hdr.base >= USER_SIZE)
+	{
+		inode_put(ino);
+		pfree(narg);
 		return ENOEXEC;
 	}
+	
+	if (hdr.end > USER_SIZE || hdr.stack > USER_SIZE || hdr.end + hdr.stack > USER_SIZE)
+	{
+		inode_put(ino);
+		pfree(narg);
+		return ENOEXEC;
+	}
+	
+	siga  = USER_SIZE - (&sigrete - &sigret);
+	nama  = siga;
+	if (oname)
+		nama -= strlen(oname) + 1;
+	enva  = nama - strlen(env) - 1;
+	arga  = enva - strlen(arg) - 1;
+	stka  = arga - hdr.stack;
+	stka &= ~7;
+	
+	for (i = 0; i < 1024; i++)
+		if (pt[i])
+		{
+			pg_free(pt[i] >> 12);
+			pt[i] = 0;
+		}
+	pg_update();
+	
+	curr->size	= 0;
+	curr->errno	= (void *)hdr.errno;
+	curr->sigret	= siga;
+	curr->sigret1	= siga + (&sigret1 - &sigret);
+	curr->sig_usr	= 0;
+	curr->brk	= hdr.end;
+	curr->stk	= stka;
+	curr->astk	= USER_SIZE;
+	curr->base	= hdr.base;
+	curr->end	= hdr.end;
+	curr->compat	= 0;
+	
+	if (hdr.base)
+		curr->brk = 16;
+	
+	err = pcalloc();
+	if (err)
+	{
+		sendksig(curr, SIGABRT);
+		inode_put(ino);
+		pfree(narg);
+		return 0;
+	}
+	
 	if (S_ISUID & ino->d.mode)
 		curr->euid = ino->d.uid;
 	if (S_ISGID & ino->d.mode)
 		curr->egid = ino->d.gid;
-	free((void *)curr->base);
-	curr->base	= (unsigned int)malloc(size);
-	curr->size	= size;
-	curr->errno	= (void *)hdr.errno;
-	curr->sigret	= hdr.end + hdr.extra + strlen(arg) + strlen(env) + 2;
-	curr->sigret1	= curr->sigret + (&sigret1 - &sigret);
-	curr->sig_usr	= 0;
-	curr->brk	= (void *)hdr.end;
-	if (!curr->base)
-	{
-		sendksig(curr, SIGABRT);
-		inode_put(ino);
-		return 0;
-	}
+	
 	updatecpu();
-	uset(NULL, 0, size);
-	err = loadbin(ino);
+	err = loadbin(ino, hdr.base);
 	inode_put(ino);
 	if (err)
 	{
 		sendksig(curr, SIGABRT);
+		pfree(narg);
 		return 0;
 	}
+	
 	uregs->eip	= hdr.start;
 	uregs->eax	= 0;
-	uregs->ebx	= hdr.end + hdr.extra;
+	uregs->ebx	= arga;
 	uregs->ecx	= 0;
-	uregs->esi	= 0;
-	uregs->edi	= 0;
+	uregs->esi	= enva;
+	uregs->edi	= nama;
 	uregs->ebp	= 0;
 	uregs->cs	= USER_CS;
 	uregs->ds	= USER_DS;
@@ -166,42 +282,56 @@ int do_exec(char *name, char *arg, char *env)
 	uregs->fs	= USER_DS;
 	uregs->gs	= USER_DS;
 	uregs->ss	= USER_DS;
-	uregs->esp	= uregs->ebx;
+	uregs->esp	= arga;
 	uregs->eflags  &= 0xffc0822a;
-	strncpy(curr->comm, basename(name), sizeof(curr->comm));
-	strcpy((char *)curr->base + uregs->esp, arg);
-	strcpy((char *)curr->base + uregs->esp + strlen(arg) + 1, env);
-	memcpy((char *)curr->base + curr->sigret, &sigret, &sigrete - &sigret);
+	
+	if (oname)
+	{
+		strncpy(curr->comm, basename(oname), sizeof(curr->comm));
+		tucpy((void *)nama, oname, strlen(oname));
+		curr->cpname = name;
+	}
+	else
+	{
+		strncpy(curr->comm, basename(name), sizeof(curr->comm));
+		uregs->edi = 0;
+		curr->cpname = NULL;
+	}
+	
+	tucpy((void *)arga, arg, strlen(arg));
+	tucpy((void *)enva, env, strlen(env));
+	tucpy((void *)siga, &sigret, &sigrete - &sigret);
 	fd_cloexec();
 	return 0;
 }
 
 int sys__exec(char *name, char *arg, char *env)
 {
-	char *lname;
-	char *larg;
-	char *lenv;
+	char *lname = palloc();
+	char *larg = palloc();
+	char *lenv = palloc();
 	int err;
 	
-	err = usdup(&lname, name, PATH_MAX);
+	if (!lname || !larg || !lenv)
+		goto fail;
+	
+	err = fustr(lname, name, PATH_MAX);
 	if (err)
 		goto fail;
 	
-	err = usdup(&larg, arg, ARG_MAX);
+	err = fustr(larg, arg, ARG_MAX);
 	if (err)
 		goto fail;
 	
-	err = usdup(&lenv, env, ARG_MAX);
+	err = fustr(lenv, env, ARG_MAX);
 	if (err)
 		goto fail;
 	
 	err = do_exec(lname, larg, lenv);
-	if (err)
-		goto fail;
 fail:
-	free(lname);
-	free(larg);
-	free(lenv);
+	pfree(lname);
+	pfree(larg);
+	pfree(lenv);
 	if (err)
 	{
 		uerr(err);

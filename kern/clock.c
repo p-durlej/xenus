@@ -51,9 +51,15 @@ void clock_chkalarm()
 	sendsig(curr, SIGALRM);
 }
 
-void clkint()
+void clkint(int nr, struct intr_regs *r)
 {
 	clock_chkalarm();
+	
+	if (r->cs & 3)
+		curr->times.tms_utime++;
+	else
+		curr->times.tms_stime++;
+	
 	time.ticks++;
 	if (time.ticks == HZ)
 	{
@@ -103,7 +109,7 @@ void clock_init()
 	outb(CLOCK_PORT + 3, 0x36);
 	outb(CLOCK_PORT, (char)CLOCK_RELOADV);
 	outb(CLOCK_PORT, CLOCK_RELOADV >> 8);
-
+	
 	irq_set(CLOCK_IRQ, clkint);
 	irq_ena(CLOCK_IRQ);
 }
@@ -150,12 +156,23 @@ int sys_stime(time_t *t)
 
 unsigned sys_alarm(unsigned sec)
 {
+	unsigned r = curr->alarm.time;
 	struct systime at;
+	time_t t;
 	
 	if (sec > 100000000)
 	{
 		uerr(EINVAL);
 		return -1;
+	}
+	
+	if (!sec)
+	{
+		curr->alarm.time = 0;
+		t = time.time;
+		if (at.time > t)
+			return at.time - t;
+		return 0;
 	}
 	
 	do
@@ -164,11 +181,14 @@ unsigned sys_alarm(unsigned sec)
 		at.ticks = time.ticks;
 	} while (at.time != time.time || at.ticks != time.ticks);
 	
+	if (r)
+		r -= at.time;
+	
 	at.time += sec;
 	intr_disable();
 	curr->alarm = at;
 	intr_enable();
-	return 0;
+	return r;
 }
 
 unsigned sys_sleep(unsigned sec)
@@ -183,4 +203,20 @@ unsigned sys_sleep(unsigned sec)
 		t = 0;
 	
 	return t / HZ;
+}
+
+clock_t sys_times(struct tms *tms)
+{
+	int err;
+	
+	if (tms)
+	{
+		err = tucpy(tms, &curr->times, sizeof curr->times);
+		if (err)
+		{
+			uerr(err);
+			return -1;
+		}
+	}
+	return clock_ticks();
 }

@@ -77,6 +77,17 @@ int con_cread(struct tty *tty, char *c, int nodelay)
 	return 0;
 }
 
+static void con_clreol(void)
+{
+	u16_t *p, *e;
+	
+	e = &con_fbuf[con_y * PCCON_NCOL + PCCON_NCOL];
+	p = &con_fbuf[con_y * PCCON_NCOL + con_x];
+	
+	for (; p < e; p++)
+		*p = ' ' | cd_attr;
+}
+
 int con_cwrite(struct tty *tty, char c, int nodelay)
 {
 	static int ctrl = 0;
@@ -95,6 +106,9 @@ int con_cwrite(struct tty *tty, char c, int nodelay)
 		case 'p':
 			ctrl = 2;
 			return 0;
+		case 'P':
+			ctrl = 4;
+			return 0;
 		case 'h':
 			con_x = con_y = 0;
 			con_setcursor();
@@ -105,6 +119,16 @@ int con_cwrite(struct tty *tty, char c, int nodelay)
 			break;
 		case 'I':
 			cd_attr = cd_attr0;
+			break;
+		case 'U':
+			if (con_y)
+			{
+				con_y--;
+				con_setcursor();
+			}
+			break;
+		case 'C':
+			con_clreol();
 			break;
 		default:
 			con_putca(27, cd_attr);
@@ -118,6 +142,15 @@ int con_cwrite(struct tty *tty, char c, int nodelay)
 		break;
 	case 3:
 		con_y = (unsigned)c & 255;
+		con_setcursor();
+		ctrl = 0;
+		break;
+	case 4:
+		con_y = (unsigned)(c - ' ') & 255;
+		ctrl++;
+		break;
+	case 5:
+		con_x = (unsigned)(c - ' ') & 255;
 		con_setcursor();
 		ctrl = 0;
 		break;

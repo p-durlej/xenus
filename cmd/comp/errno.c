@@ -24,10 +24,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-extern struct mhead
+#include <errno.h>
+
+#include "mnxcompat.h"
+
+static int errtab[] =
 {
-	int		free;
-	unsigned	size;
-	struct mhead *	next;
-	unsigned	pad;
-} *__libc_mhead;
+	[ENOENT]	=  2,
+	[EACCES]	= 13,
+	[EPERM]		=  1,
+	[E2BIG]		=  7,
+	[EBUSY]		= 16,
+	[ECHILD]	= 10,
+	[EEXIST]	= 17,
+	[EFAULT]	= 14,
+	[EFBIG]		= 27,
+	[EINTR]		=  4,
+	[EINVAL]	= 22,
+	[ENOMEM]	= 12,
+	[EMFILE]	= 24,
+	[EMLINK]	= 31,
+	[EAGAIN]	= 11,
+	[ENAMETOOLONG]	= 36,
+	[ENFILE]	= 23,
+	[ENODEV]	= 19,
+	[ENOEXEC]	=  8,
+	[EIO]		=  5,
+	[ENOSPC]	= 28,
+	[ENOSYS]	= 38,
+	[ENOTDIR]	= 20,
+	[ENOTEMPTY]	= 39,
+	[ENOTTY]	= 25,
+	[EPIPE]		= 32,
+	[EROFS]		= 30,
+	[ESPIPE]	= 29,
+	[ESRCH]		=  3,
+	[EXDEV]		= 18,
+	[ERANGE]	= 34,
+	[EBADF]		=  9,
+	[EISDIR]	= 21,
+	[ETXTBSY]	= 26,
+	[ENXIO]		=  6,
+};
+
+#include <stdio.h>
+
+int mnx_error(int err)
+{
+#if MNXDEBUG
+//	mprintf("mnx_error %i -> %i\n", err, errtab[err]);
+#endif
+	return -errtab[err];
+}

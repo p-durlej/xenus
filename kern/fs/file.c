@@ -96,7 +96,9 @@ int fd_chk(int fd, int mode)
 	struct file *file;
 	int m;
 	
-	if (fd < 0 || (fd >= MAXFDS && !curr->fd[fd].file))
+	if (fd < 0 || fd >= MAXFDS)
+		return EBADF;
+	if (!curr->fd[fd].file)
 		return EBADF;
 	
 	file = curr->fd[fd].file;

@@ -1,13 +1,15 @@
 cd /
 mkfs -p /dev/hd0 160 /
 mkfs /dev/hd2
-mkfs /dev/hd3
+mkfs -p /dev/hd3 2 /usr
 mkfs /dev/hd4
+mkfs /dev/hd5
 mkboot /dev/hd0
 
 mount /dev/hd0 /tmp
 mount /dev/hd2 /tmp/tmp
-mount /dev/hd3 /tmp/usr/spool
+mount /dev/hd3 /tmp/usr
+mount /dev/hd4 /tmp/usr/spool
 
 mv /tmp/etc/fstab.hd /tmp/etc/fstab
 mv /tmp/etc/rc.hd    /tmp/etc/rc
@@ -21,12 +23,18 @@ rm /tmp/bin/[
 rm /tmp/bin/pg
 rm /tmp/bin/uureceive
 rm /tmp/bin/l
+rm /tmp/bin/chsh
+rm /tmp/bin/reboot
+
+rm -r /tmp/usr/dbg
 
 ln /tmp/bin/clear /tmp/bin/c
 ln /tmp/bin/test  /tmp/bin/[
 ln /tmp/bin/more  /tmp/bin/pg
 ln /tmp/bin/uudecode /tmp/bin/uureceive
 ln /tmp/bin/ls    /tmp/bin/l
+ln /tmp/bin/passwd /tmp/bin/chsh
+ln /tmp/bin/halt  /tmp/bin/reboot
 
 mkdir /tmp/usr/spool/mail
 
@@ -34,5 +42,8 @@ chmod 755 /tmp/usr/spool/mail
 chmod 1777 /tmp/tmp
 
 umount /tmp/usr/spool
+umount /tmp/usr
 umount /tmp/tmp
+
+rm -r /tmp/usr/*
 umount /tmp

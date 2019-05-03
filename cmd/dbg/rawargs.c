@@ -24,82 +24,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <xenus/exec.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
 
-int main(int argc, char **argv)
+int rawmain(char *args)
 {
-	struct exehdr hdr;
-	unsigned sz = 0;
-	int fd;
-	int x = 0;
-	int i = 1;
-	
-	if (argc < 2)
-	{
-		fprintf(stderr,"chmem [-newsize] binfile1...\n");
-		return 1;
-	}
-	
-	if (*argv[i] == '-')
-		sz = atol(argv[i++] + 1);
-	else
-		puts("FILE           BASE    START      END    EXTRA");
-	
-	for (; i < argc; i++)
-	{
-		fd = open(argv[i], sz ? O_RDWR : O_RDONLY);
-		if (fd < 0)
-		{
-			perror(argv[1]);
-			x = 1;
-			continue;
-		}
-		
-		memset(&hdr, 0, sizeof hdr);
-		
-		if (read(fd, &hdr, sizeof(hdr)) < 0)
-		{
-			perror(argv[1]);
-			close(fd);
-			x = 1;
-			continue;
-		}
-		
-		if (memcmp(hdr.magic, "XENUS386", 8))
-		{
-			fprintf(stderr, "%s: bad magic\n", argv[i]);
-			x = 1;
-			goto next;
-		}
-		
-		if (!sz)
-			printf("%-10s %8u %8u %8u %8u\n", argv[i], hdr.base, hdr.start, hdr.end, hdr.extra);
-		
-		if (sz)
-		{
-			hdr.extra = sz;
-			
-			if (lseek(fd, (off_t)0, SEEK_SET))
-			{
-				perror(argv[i]);
-				x = 1;
-				goto next;
-			}
-			
-			if (write(fd, &hdr, sizeof(hdr)) != sizeof(hdr))
-			{
-				perror(argv[i]);
-				x = 1;
-				goto next;
-			}
-		}
-next:
-		close(fd);
-	}
-	return x;
+	write(1, args, strlen(args));
+	write(1, "\n", 1);
+	return 0;
 }

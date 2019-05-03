@@ -30,6 +30,6 @@ struct exehdr
 	unsigned	base;
 	unsigned	start;
 	unsigned	end;
-	unsigned	extra;
+	unsigned	stack;
 	unsigned	errno;
 };

@@ -25,16 +25,24 @@
  */
 
 #include <xenus/process.h>
-#include <xenus/malloc.h>
+#include <xenus/printf.h>
+#include <xenus/panic.h>
+#include <xenus/page.h>
 #include <xenus/umem.h>
 #include <string.h>
 #include <errno.h>
+
+void *kaddr(void *uaddr)
+{
+	return (char *)uaddr + USER_BASE;
+}
 
 int fucpy(void *dst, void *src, unsigned int len)
 {
 	if (urchk(src, len))
 		return EFAULT;
-	memcpy(dst, (char *)src + curr->base, len);
+	
+	memcpy(dst, kaddr(src), len);
 	return 0;
 }
 
@@ -42,7 +50,8 @@ int tucpy(void *dst, void *src, unsigned int len)
 {
 	if (uwchk(dst, len))
 		return EFAULT;
-	memcpy((char *)dst + curr->base, src, len);
+	
+	memcpy(kaddr(dst), src, len);
 	return 0;
 }
 
@@ -50,56 +59,125 @@ int uset(void *ptr, int c, unsigned int len)
 {
 	if (uwchk(ptr, len))
 		return EFAULT;
-	memset((char *)ptr + curr->base, c, len);
+	
+	memset(kaddr(ptr), c, len);
 	return 0;
 }
 
 int fustr(char *dst, char *src, unsigned int len)
 {
-	while (len--)
+	unsigned limit = curr->brk;
+	
+	if ((unsigned)src >= curr->stk && (unsigned)src < curr->astk)
 	{
-		if ((unsigned)src > curr->size)
-			return EFAULT;
-		*dst = src[curr->base];
+		*dst = 0;
+		return 0;
+	}
+	
+	if ((unsigned)src >= curr->stk)
+		limit = USER_SIZE;
+	
+	while (len-- && (unsigned)src < limit)
+	{
+		*dst = *(char *)kaddr(src);
 		if (!*dst)
 			return 0;
 		dst++;
 		src++;
 	}
-	
 	return EFAULT;
 }
 
-int usdup(char **dst, char *src, unsigned len)
+static int growstk(unsigned a, unsigned len)
 {
-	unsigned l;
-	char *p;
+	unsigned pg, end;
+	unsigned i;
 	
-	for (p = src + curr->base, l = 1; l < len; l++, p++)
-		if (!*p)
-			break;
-	if (l >= len)
-		return EFAULT;
+	if (curr->astk > USER_SIZE)
+	{
+		printf("astk %p\n", (void *)curr->astk);
+		panic("bad astk");
+	}
 	
-	p = malloc(l);
-	if (!p)
-		return ENOMEM;
+	if (a >= curr->astk)
+		return 0;
 	
-	memcpy(p, src + curr->base, l);
-	*dst = p;
+	end = curr->astk >> 12;
+	pg  = a >> 12;
+	
+	for (i = pg; i < end; i++)
+		if (!curr->ptab[i])
+		{
+			void *p;
+			
+			p = zpalloc();
+			if (!p)
+				return ENOMEM;
+			
+			curr->ptab[i] = (unsigned)p | 7;
+			curr->size++;
+		}
+	curr->astk = a & ~4095;
 	return 0;
 }
 
 int urchk(void *ptr, unsigned int len)
 {
-	if ((unsigned int)ptr > curr->size || len > curr->size)
+	unsigned a = (unsigned)ptr;
+	unsigned pg, end;
+	
+	if (a > USER_SIZE || len > USER_SIZE)
 		return EFAULT;
-	if ((unsigned int)ptr + len > curr->size)
-		return EFAULT;
+	
+	if (a >= curr->stk)
+	{
+		if (a + len > USER_SIZE)
+			return EFAULT;
+		return growstk(a, len);
+	}
+	
+	if (a >= curr->base && a < curr->end)
+	{
+		if (a + len > curr->end)
+			return EFAULT;
+		return 0;
+	}
+	
+	if (a < curr->brk)
+	{
+		if (len > curr->brk || a + len > curr->brk)
+			return EFAULT;
+		return 0;
+	}
+	
+	end = (a + len - 1) >> 12;
+	for (pg = a >> 12; pg <= end; pg++)
+		if (!curr->ptab[pg])
+			return EFAULT;
 	return 0;
 }
 
 int uwchk(void *ptr, unsigned int len)
 {
 	return urchk(ptr, len);
+}
+
+int ufault(unsigned a)
+{
+	void *p;
+	
+	if (a < USER_BASE)
+		return EFAULT;
+	a -= USER_BASE;
+	
+	if (a < curr->stk || a >= USER_SIZE)
+		return EFAULT;
+	
+	p = zpalloc();
+	if (!p)
+		return ENOMEM;
+	
+	curr->ptab[a >> 12] = (unsigned)p | 7;
+	pg_update();
+	return 0;
 }

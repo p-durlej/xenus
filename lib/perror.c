@@ -74,10 +74,7 @@ char *strerror(int errno)
 	static char msg[32];
 	
 	if (errno < 0 || errno >= sizeof sys_errlist / sizeof *sys_errlist)
-	{
-		sprintf(msg, "Unknown error %i", errno);
-		return msg;
-	}
+		return "Unknown error";
 	return sys_errlist[errno];
 }
 

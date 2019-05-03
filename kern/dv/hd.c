@@ -30,6 +30,7 @@
 #include <xenus/clock.h>
 #include <xenus/umem.h>
 #include <xenus/intr.h>
+#include <xenus/page.h>
 #include <xenus/io.h>
 #include <xenus/fs.h>
 #include <sys/types.h>
@@ -210,7 +211,7 @@ int hd_bwrite(dev_t dev, blk_t blk, void *buf)
 	return hd_io(unit, CMD_WRITE, c, h, s, (u16_t *)buf);
 }
 
-void hd_irq(int i)
+void hd_irq()
 {
 	hd_intr = 1;
 }
@@ -357,7 +358,7 @@ int rhd_read(struct rwreq *req)
 	err = uwchk(p, req->count);
 	if (err)
 		return err;
-	p += curr->base;
+	p += USER_BASE;
 	
 	blk = req->start / 512;
 	cnt = req->count / 512;
@@ -388,7 +389,7 @@ int rhd_write(struct rwreq *req)
 	err = urchk(p, req->count);
 	if (err)
 		return err;
-	p += curr->base;
+	p += USER_BASE;
 	
 	blk = req->start / 512;
 	cnt = req->count / 512;

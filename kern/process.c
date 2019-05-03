@@ -24,14 +24,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <xenus/selector.h>
 #include <xenus/process.h>
 #include <xenus/syscall.h>
 #include <xenus/config.h>
 #include <xenus/panic.h>
+#include <xenus/page.h>
 #include <xenus/exec.h>
 #include <xenus/intr.h>
 #include <xenus/umem.h>
+#include <xenus/ualloc.h>
 #include <sys/types.h>
+#include <string.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -169,9 +173,11 @@ void pushsig(struct intr_regs *r)
 			r->eax,
 			r->eflags,
 			r->eip,
+			r->cs,
 		};
 		
 		r->eip  = curr->sigret;
+		r->cs	= USER_CS;
 		r->esp -= sizeof a;
 		if (tucpy((void *)r->esp, a, sizeof a))
 			pmd(SIGBUS);
@@ -233,12 +239,16 @@ void do_exit(int status)
 			p->psid = 0;
 	}
 	
+	curr->parent->times.tms_cutime += curr->times.tms_utime;
+	intr_disable();
+	curr->parent->times.tms_cstime += curr->times.tms_stime;
+	intr_enable();
+	
 	sendsig(curr->parent, SIGCHLD);
 	
 	curr->exit_status = status;
 	curr->exited = 1;
-	free((void *)curr->base);
-	curr->base = NULL;
+	pcfree();
 	wakeup();
 	sched();
 }
@@ -297,51 +307,58 @@ void idle(void)
 	sched();
 }
 
+static void suseg(char *sd, char type, unsigned base, unsigned limit)
+{
+	sd[0] = limit;
+	sd[1] = limit >> 8;
+	sd[2] = base;
+	sd[3] = base >>  8;
+	sd[4] = base >> 16;
+	sd[5] = type;
+	sd[6] = (limit >> 16) | 0xc0;
+	sd[7] = base >> 24;
+}
+
 void updatecpu()
 {
-	extern char ucs_desc[];
-	extern char uds_desc[];
 	extern char *kstktop;
 	
-	unsigned limit = curr->size - 1;
-	
-	ucs_desc[0] = limit;
-	ucs_desc[1] = limit >> 8;
-	ucs_desc[2] = curr->base;
-	ucs_desc[3] = curr->base >> 8;
-	ucs_desc[4] = curr->base >> 16;
-	ucs_desc[5] = 0xfa;
-	ucs_desc[6] = (limit >> 16) | 0x40;
-	ucs_desc[7] = curr->base >> 24;
-	
-	uds_desc[0] = limit;
-	uds_desc[1] = limit >> 8;
-	uds_desc[2] = curr->base;
-	uds_desc[3] = curr->base >> 8;
-	uds_desc[4] = curr->base >> 16;
-	uds_desc[5] = 0xf2;
-	uds_desc[6] = (limit >> 16) | 0x40;
-	uds_desc[7] = curr->base >> 24;
+	pg_dir[USER_BASE >> 22] = (unsigned)curr->ptab | 7;
+	pg_update();
 	
 	kstktop = curr->kstk + KSTK_SIZE;
 }
 
 void proc_init()
 {
+	extern char ucs_desc[];
+	extern char uds_desc[];
+	extern char scs_desc[];
+	extern char sds_desc[];
+	
 	static struct inode cinode;
 	static struct super csuper;
-	static char kstk[KSTK_SIZE];
 	
 	struct intr_regs noregs;
 	struct file *cfile;
 	int i;
+	
+	suseg(ucs_desc, 0xfa, USER_BASE, (USER_SIZE >> 12) - 1);
+	suseg(uds_desc, 0xf2, USER_BASE, (USER_SIZE >> 12) - 1);
+	
+	suseg(scs_desc, 0xfa, USER_BASE + USER_SIZE / 2, ((USER_SIZE / 2) >> 12) - 1);
+	suseg(sds_desc, 0xf2, USER_BASE,		 ((USER_SIZE / 2) >> 12) - 1);
 	
 	uregs = &noregs;
 	
 	curr->pid	= 1;
 	curr->psid	= 1;
 	curr->parent	= curr;
-	curr->kstk	= kstk;
+	curr->kstk	= (void *)KSTK_BASE;
+	curr->ptab	= zpalloc();
+	
+	if (!curr->ptab)
+		panic("proc ptab");
 	
 	pact[0] = curr;
 	

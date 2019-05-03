@@ -30,9 +30,9 @@ UCMD :=	test ls echo mkdir rmdir cp mv ln sleep rm cat		\
 	basename dirname kill true false whoami more		\
 	dd uname pwd printenv chmod sync tty du head wc		\
 	stty cmp lc clear mkfifo od file tail mesg write	\
-	id tar touch uudecode uuencode man dm
+	id tar touch uudecode uuencode man dm tr time
 
-XCMD := chmem passwd df date mf ps who uptime su newgrp mail	\
+XCMD := chstk passwd df date mf ps who uptime su newgrp mail	\
 	find fgrep
 
 CMD  := $(UCMD) $(XCMD)

@@ -146,6 +146,10 @@ int dir_creat(struct inode *dir, char *name, ino_t ino)
 		blk_put(b);
 	}
 	
+	err = inode_chkperm(dir, W_OK);
+	if (err)
+		return err;
+	
 	if (fi == -1)
 	{
 		fn = n;
@@ -157,10 +161,6 @@ int dir_creat(struct inode *dir, char *name, ino_t ino)
 		dir->d.size = fn * BLK_SIZE + (fi + 1) * sizeof(struct dirent);
 		dir->dirty  = 2;
 	}
-	
-	err = inode_chkperm(dir, W_OK);
-	if (err)
-		return err;
 	
 	err = bmget_alloc(dir, fn, &b);
 	if (err)

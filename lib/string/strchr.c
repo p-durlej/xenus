@@ -24,11 +24,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-char *strchr(unsigned char *s, unsigned int c)
+#include <string.h>
+
+char *strchr(char *s, int c)
 {
 	for (;;)
 	{
-		if (*s == c)
+		if (*s == (char )c)
 			return (char *)s;
 		if (!*s)
 			return 0;

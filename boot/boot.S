@@ -155,7 +155,7 @@ halt:
 	jmp	halt
 	
 msg_wait:
-	.asciz	"XENUS 4.11 "
+	.asciz	"XENUS 5.0 "
 msg_error:
 	.asciz	"I/O error!\r\n"
 msg_ok:

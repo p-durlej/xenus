@@ -24,51 +24,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
+#ifndef AOUT_H
+#define AOUT_H
 
-#include "malloc.h"
+#include <sys/types.h>
 
-void *malloc(size_t size)
+#define SEPID	0x20
+
+struct aout
 {
-	struct mhead *mh = __libc_mhead;
-	struct mhead *last;
-	
-	size += sizeof(struct mhead);
-	size +=  15;
-	size &= ~15;
-	
-	while (mh)
-	{
-		if (mh->free && mh->next && mh->next->free && (char *)mh + mh->size == (char *)mh->next)
-		{
-			mh->size += mh->next->size;
-			mh->next  = mh->next->next;
-			continue;
-		}
-		
-		if (mh->free && mh->size >= sizeof(struct mhead) + size)
-		{
-			struct mhead *fmh;
-			
-			fmh = (struct mhead *)((char *)mh + size);
-			fmh->free = 1;
-			fmh->size = mh->size-size;
-			fmh->next = mh->next;
-			mh->free  = 0;
-			mh->size  = size;
-			mh->next  = fmh;
-			return (void *)(mh + 1);
-		}
-		
-		if (mh->free && mh->size >= size)
-		{
-			mh->free = 0;
-			return (void *)(mh + 1);
-		}
-		
-		last = mh;
-		mh = mh->next;
-	};
-	
-	return NULL;
-}
+	unsigned short	magic;
+	unsigned char	flags;
+	unsigned char	cpu;
+	unsigned char	hlen;
+	unsigned char	junk;
+	unsigned short	version;
+	unsigned	text;
+	unsigned	data;
+	unsigned	bss;
+	unsigned	entry;
+	unsigned	total;
+	unsigned	syms;
+};
+
+#endif

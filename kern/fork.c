@@ -27,6 +27,7 @@
 #include <xenus/process.h>
 #include <xenus/syscall.h>
 #include <xenus/config.h>
+#include <xenus/page.h>
 #include <xenus/umem.h>
 #include <xenus/fs.h>
 #include <sys/wait.h>
@@ -34,7 +35,7 @@
 #include <string.h>
 #include <errno.h>
 
-pid_t allocpid()
+static pid_t allocpid()
 {
 	static pid_t nextpid = 1;
 	int i;
@@ -58,6 +59,7 @@ pid_t sys_fork()
 {
 	struct intr_regs *nr;
 	int cnt = 0;
+	int err;
 	int i;
 	int n;
 	
@@ -83,18 +85,21 @@ pid_t sys_fork()
 	
 	proc[i]		= *curr;
 	proc[i].parent	= curr;
-	proc[i].kstk	= malloc(KSTK_SIZE);
-	proc[i].base	= (unsigned)malloc(curr->size);
-	if (!proc[i].kstk || !proc[i].base)
+	proc[i].kstk	= palloc();
+	proc[i].ptab	= zpalloc();
+	
+	if (!proc[i].kstk || !proc[i].ptab)
 	{
-		memset(&proc[i], 0, sizeof proc[i]);
-		free(proc[i].kstk);
-		free((void *)proc[i].base);
-		uerr(ENOMEM);
-		return -1;
+		err = ENOMEM;
+		goto fail;
 	}
-	memcpy((void *)proc[i].base, (void *)curr->base, curr->size);
+	
+	err = pccopy(proc[i].ptab);
+	if (err)
+		goto fail;
+	
 	proc[i].pid = allocpid();
+	memset(&proc[i].times, 0, sizeof proc[i].times);
 	for (n = 0; n < MAXFDS; n++)
 		if (curr->fd[n].file)
 			curr->fd[n].file->refcnt++;
@@ -108,19 +113,25 @@ pid_t sys_fork()
 	proc[i].kstate->eip  = (u32_t)asm_afterfork;
 	memcpy(nr, uregs, sizeof(*uregs));
 	nr->eax	   = 0;
-	nr->eflags = nr->esp;
-	nr->esp	   = nr->ss;
 	pact[npact++] = &proc[i];
 	return proc[i].pid;
+fail:
+	pfree(proc[i].ptab);
+	pfree(proc[i].kstk);
+	memset(&proc[i], 0, sizeof proc[i]);
+	
+	uerr(err);
+	return -1;
 }
 
-pid_t sys_wait(int *status)
+pid_t sys_wait(int *status) // XXX should reuse waitpid
 {
 	struct process *z = NULL;
 	struct process *c = NULL;
 	struct process *p;
 	pid_t pid;
 	int err;
+	int st;
 	int zi;
 	int i;
 	
@@ -156,7 +167,8 @@ restart:
 		goto restart;
 	}
 	
-	err = tucpy(status, &z->exit_status, sizeof(int));
+	st = z->exit_status;
+	err = tucpy(status, &st, sizeof st);
 	if (err)
 	{
 		uerr(err);
@@ -164,7 +176,73 @@ restart:
 	}
 	
 	pid = z->pid;
-	free(z->kstk);
+	pfree(z->kstk);
+	memset(z, 0, sizeof *z);
+	pact[zi] = pact[--npact];
+	
+	return pid;
+}
+
+pid_t sys_waitpid(pid_t wpid, int *status, int options)
+{
+	struct process *z = NULL;
+	struct process *c = NULL;
+	struct process *p;
+	pid_t pid;
+	int err;
+	int st;
+	int zi;
+	int i;
+	
+restart:
+	for (i = 0; i < npact; i++)
+	{
+		p = pact[i];
+		
+		if (p->pid == 1 || !p->pid || p->parent != curr)
+			continue;
+		c = p;
+		if (c->exited)
+			if (wpid < 0 || c->pid == wpid) // XXX not pgrp
+			{
+				zi = i;
+				z = c;
+			}
+	}
+	
+	if (!c)
+	{
+		uerr(ECHILD);
+		return -1;
+	}
+	
+	if (!z)
+	{
+		if (options & WNOHANG)
+		{
+			uerr(ECHILD);
+			return -1;
+		}
+		
+		idle();
+		if (curr->sig)
+		{
+			uerr(EINTR);
+			return -1;
+		}
+		goto restart;
+	}
+	
+	st = z->exit_status;
+	err = tucpy(status, &st, sizeof st);
+	if (err)
+	{
+		uerr(err);
+		return -1;
+	}
+	
+	pid = z->pid;
+	pfree(z->kstk);
 	memset(z, 0, sizeof *z);
 	pact[zi] = pact[--npact];
 	

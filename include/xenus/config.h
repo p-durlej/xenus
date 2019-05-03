@@ -33,12 +33,16 @@
 #define MAXUPROC	25
 #define BCWIDTH		131
 #define BCDEPTH		4
+#define FILLMEM		0
+#define FREEPOISON	0
 
 #define CDEBUGBLK	0
 #define CDEBUGRS	0
 #define CDEBUGPROC	0
 
 /* The params below are not really user-configurable; do not edit */
+
+#define SHELL		"/bin/sh"
 
 #define TTY_DEVN	0
 #define NUL_DEVN	1

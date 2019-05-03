@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 		aflag = 0;
 	
 	if (lflag)
-		printf("TTY     SIZE   BASE  PID  PPID PSID EUID RUID EGID RGID TS  COMMAND\n");
+		printf("TTY     SIZE PTABL PID  PPID PSID EUID RUID EGID RGID TS  COMPAT COMMAND\n");
 	else
 		printf("TTY     PID  COMMAND\n");
 	ldevs();
@@ -190,9 +190,9 @@ int main(int argc, char **argv)
 			fputs("        ", stdout);
 		
 		if (lflag)
-			printf("%-6i %05x %-4i %-4i %-4i %-4i %-4i %-4i %-4i %-3i %s\n",
-			       (int)pi->size,
-			       (unsigned)pi->base >> 4,
+			printf("%4i %05x %-4i %-4i %-4i %-4i %-4i %-4i %-4i %-3i %-6s %s\n",
+			       (int)pi->size >> 10,
+			       (unsigned)pi->ptab >> 12,
 			       (int)pi->pid,
 			       (int)pi->ppid,
 			       (int)pi->psid,
@@ -201,6 +201,7 @@ int main(int argc, char **argv)
 			       (int)pi->egid,
 			       (int)pi->rgid,
 			       (int)pi->time_slice,
+			       pi->compat,
 			       pi->comm
 			       );
 		else

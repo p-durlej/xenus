@@ -3,14 +3,16 @@
 <h1>XENUS Unix-like OS</h1>
 <p>The XENUS OS is a multiuser, Unix-like operating system for the i386 (PC) platform.
 <h2>Requirements</h2>
+<ul>
 <li>40MiB or larger IDE hard disk
 <li>1.44 3.5" floppy drive
 <li>80386 CPU (387 not required)
 <li>2 MiB or more RAM
 <li>CGA, EGA, VGA, or compatible
 <li>optionally 8250, 16550, or 16550A-compatible serial ports (only needed for serial terminals)
+</ul>
 <h2>Getting</h2>
-<p>Distribution floppy image: <a href='xenus.img'>download</a>
+<p>Distribution floppy image: <a href='xenus.img'>download</a> (<a href='xenus.img.gz'>gzipped</a>)
 <p>Source code: <a href='xenus.tgz'>archive</a>, <a href='https://github.com/p-durlej/xenus'>GitHub</a>
 <h2>Building</h2>
 <p>The system should be built on an <b>OpenBSD 6.4/amd64</b> host. While other hosts may work, the system uses and is sensitive to the host compiler.
@@ -45,3 +47,18 @@
 <h2>Program development</h2>
 <p>Use the <b>cc-xenus</b> wrapper in the <b>hostcmd</b> directory if you want to compile programs for XENUS.
 <p>The system exposes an limited UNIX-like API.
+<h2>Additional software</h2>
+<p>The system now includes Minix binary compatibility.
+<p>There are two floppy disk images with software repackaged from Minix:
+<ul>
+<li><a href='mnx.img'>MNX</a> (<a href='mnx.img.gz'>gzipped</a>) - some of the Minix commands
+<li><a href='sdk.img'>SDK</a> (<a href='sdk.img.gz'>gzipped</a>) - ACK toolchain
+</ul>
+<p>To install MNX or SDK:
+<ol>
+<li>Insert the floppy into the drive
+<li>Login as <b>root</b>
+<li>Make sure the current directory is <b>/</b>
+<li>Make sure the umask is <b>022</b>
+<li>Type <b>tar x</b>
+</ol>

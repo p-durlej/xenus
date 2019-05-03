@@ -25,14 +25,17 @@
  */
 
 #include <sys/types.h>
+#include <string.h>
 
-void *memchr(unsigned char *s, unsigned int c, size_t n)
+void *memchr(void *s, int c, size_t n)
 {
+	char *p = s;
+	
 	while (n--)
 	{
-		if (*s == c)
+		if (*p == (char )c)
 			return s;
-		s++;
+		p++;
 	}
 	return 0;
 }

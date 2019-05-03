@@ -25,6 +25,12 @@
  */
 
 #include <xenus/selector.h>
+#include <xenus/config.h>
+
+	.globl asm_syscall
+	.globl asm_minix
+	.globl asm_afterfork
+	.globl xecode
 
 #define SAVE_REGS	\
 	pushl	%eax;	\
@@ -81,35 +87,42 @@
 asm_irq_ ## nr ## :		\
 	INTRHAND(intr_irq, nr)
 
-.globl asm_syscall
 asm_syscall:
 	INTRHAND(syscall, 0)
 
-#define EXCHAND(nr, ecode)	\
+asm_minix:
+	INTRHAND(minix, 0)
+
+#define EXCHAND(nr)		\
 .globl asm_exc_ ## nr;		\
 asm_exc_ ## nr ## :		\
-	add	$ecode, %esp;	\
 	INTRHAND(exception, nr)
 
-EXCHAND(0,  0)
-EXCHAND(1,  0)
-EXCHAND(2,  0)
-EXCHAND(3,  0)
-EXCHAND(4,  0)
-EXCHAND(5,  0)
-EXCHAND(6,  0)
-EXCHAND(7,  0)
-EXCHAND(8,  4)
-EXCHAND(9,  4)
-EXCHAND(10, 4)
-EXCHAND(11, 4)
-EXCHAND(12, 4)
-EXCHAND(13, 4)
-EXCHAND(14, 4)
-EXCHAND(15, 0)
-EXCHAND(16, 0)
-EXCHAND(17, 4)
-EXCHAND(18, 0)
+#define EXEHAND(nr)		\
+.globl asm_exc_ ## nr;		\
+asm_exc_ ## nr ## :		\
+	popl	%ss:xecode;	\
+	INTRHAND(exception, nr)
+
+EXCHAND(0)
+EXCHAND(1)
+EXCHAND(2)
+EXCHAND(3)
+EXCHAND(4)
+EXCHAND(5)
+EXCHAND(6)
+EXCHAND(7)
+EXEHAND(8)
+EXEHAND(9)
+EXEHAND(10)
+EXEHAND(11)
+EXEHAND(12)
+EXEHAND(13)
+EXEHAND(14)
+EXCHAND(15)
+EXCHAND(16)
+EXEHAND(17)
+EXCHAND(18)
 
 IRQHAND(0)
 IRQHAND(1)
@@ -128,7 +141,9 @@ IRQHAND(13)
 IRQHAND(14)
 IRQHAND(15)
 
-.globl asm_afterfork
 asm_afterfork:
 	RESTORE_REGS
-	lret
+	iret
+
+	.data
+xecode:	.long	-1

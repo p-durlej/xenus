@@ -45,7 +45,10 @@
 
 static struct termios stio;
 
-void setpass(uid_t uid, char *passwd)
+static char *nshell;
+static char *npass;
+
+void setpass(uid_t uid)
 {
 	struct passwd *pw;
 	FILE *f1;
@@ -96,7 +99,12 @@ restart:
 	while (pw = getpwent(), pw)
 	{
 		if (pw->pw_uid == uid)
-			pw->pw_passwd = passwd;
+		{
+			if (nshell)
+				pw->pw_shell = nshell;
+			if (npass)
+				pw->pw_passwd = npass;
+		}
 		if (putpwent(pw, f1))
 		{
 			perror(TSPWD);
@@ -138,13 +146,46 @@ void intr(int nr)
 	raise(nr);
 }
 
+static int isshell(char *path)
+{
+	struct stat st;
+	
+	if (!*path)
+		return 1;
+	
+	if (!getuid())
+		return 1;
+	
+	if (access(path, X_OK))
+		return 0;
+	
+	if (stat(path, &st))
+		return 0;
+	
+	if (!S_ISREG(st.st_mode))
+		return 0;
+	
+	return 1;
+}
+
 int main(int argc, char **argv)
 {
 	char passwd1[MAX_CANON + 1];
 	char passwd2[MAX_CANON + 1];
 	struct passwd *pw;
 	uid_t ruid;
+	char *cmd = "passwd";
+	char *p;
 	int i;
+	
+	if (argc)
+	{
+		cmd = strrchr(argv[0], '/');
+		if (!cmd)
+			cmd = argv[0];
+		else
+			cmd++;
+	}
 	
 	ruid = getuid();
 	umask(0);
@@ -204,7 +245,10 @@ int main(int argc, char **argv)
 	
 	if (*pw->pw_passwd && ruid)
 	{
-		printf("Old password: ");
+		if (!strcmp(cmd, "passwd"))
+			printf("Old password: ");
+		else
+			printf("Password: ");
 		fflush(stdout);
 		getpassn(passwd1, sizeof(passwd1));
 		putchar('\n');
@@ -220,28 +264,57 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	printf("New password: ");
-	fflush(stdout);
-	getpassn(passwd1, sizeof(passwd1));
-	printf("\nRetype: ");
-	fflush(stdout);
-	getpassn(passwd2, sizeof(passwd2));
-	printf("\n");
-	fflush(stdout);
-	
-	if (strcmp(passwd1, passwd2))
+	if (!strcmp(cmd, "chsh"))
 	{
-		fputs("Passwords do not match\n", stderr);
-		return 1;
+		printf("New shell: ");
+		fflush(stdout);
+		
+		if (!fgets(passwd1, sizeof passwd1, stdin))
+		{
+			if (ferror(stdin))
+				perror(NULL);
+			return 1;
+		}
+		
+		p = strchr(passwd1, '\n');
+		if (p)
+			*p = 0;
+		
+		if (!isshell(passwd1))
+		{
+			fputs("Invalid shell\n", stderr);
+			return 1;
+		}
+		
+		nshell = passwd1;
 	}
-	
-	if (strlen(passwd1) > PASSWD_MAX)
+	else
 	{
-		fputs("Password too long\n", stderr);
-		return 1;
+		printf("New password: ");
+		fflush(stdout);
+		getpassn(passwd1, sizeof(passwd1));
+		printf("\nRetype: ");
+		fflush(stdout);
+		getpassn(passwd2, sizeof(passwd2));
+		printf("\n");
+		fflush(stdout);
+		
+		if (strcmp(passwd1, passwd2))
+		{
+			fputs("Passwords do not match\n", stderr);
+			return 1;
+		}
+		
+		if (strlen(passwd1) > PASSWD_MAX)
+		{
+			fputs("Password too long\n", stderr);
+			return 1;
+		}
+		
+		npass = *passwd1 ? md5a(passwd1) : "";
 	}
 	
 	signal(SIGINT, SIG_IGN);
-	setpass(pw->pw_uid, *passwd1 ? md5a(passwd1) : "");
+	setpass(pw->pw_uid);
 	return 0;
 }

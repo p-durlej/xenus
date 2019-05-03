@@ -26,7 +26,9 @@
 
 #include <unistd.h>
 #include <utime.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <errno.h>
 #include <time.h>
 
 static int xit;
@@ -34,14 +36,28 @@ static int xit;
 static void touch(char *path)
 {
 	struct utimbuf t;
+	int fd;
 	
 	t.actime = time(&t.modtime);
+	errno = 0;
 	
-	if (utime(path, &t))
+	if (!utime(path, &t))
+		return;
+	
+	if (errno == ENOENT)
 	{
-		perror(path);
-		xit = 1;
+		fd = open(path, O_CREAT | O_EXCL | O_WRONLY, 0666);
+		if (fd < 0 && errno == EEXIST)
+			return;
+		if (fd >= 0)
+		{
+			close(fd);
+			return;
+		}
 	}
+	
+	perror(path);
+	xit = 1;
 }
 
 int main(int argc, char **argv)

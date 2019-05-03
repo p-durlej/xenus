@@ -64,19 +64,19 @@ static void ttyld_echoe(struct tty *tty, char ch)
 	
 	if (lf & ECHOE)
 	{
-		ttyld_output(tty, '\b', 1);
-		ttyld_output(tty, ' ', 1);
-		ttyld_output(tty, '\b', 1);
+		ttyld_output(tty, '\b', 0);
+		ttyld_output(tty, ' ', 0);
+		ttyld_output(tty, '\b', 0);
 		return;
 	}
 	
 	if (lf & CRTBS)
 	{
-		ttyld_output(tty, '\b', 1);
+		ttyld_output(tty, '\b', 0);
 		return;
 	}
 	
-	ttyld_output(tty, ch, 1);
+	ttyld_output(tty, ch, 0);
 }
 
 static int ttyld_output(struct tty *tty, int c, int nodelay)
@@ -143,7 +143,7 @@ int ttyld_input(struct tty *tty, int nodelay)
 					for (i = 0; i < tty->inplen; i++)
 						ttyld_echoe(tty, '\b');
 				else
-					ttyld_output(tty, '\n', 1);
+					ttyld_output(tty, '\n', 0);
 			}
 			tty->inplen = 0;
 			continue;

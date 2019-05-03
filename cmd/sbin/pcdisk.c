@@ -57,6 +57,7 @@ static int gflag;
 static int pflag;
 static int nflag;
 static int bigX;
+static int bigZ;
 static int actn = -1;
 static int size = 80000;
 static int modf, rtbl;
@@ -294,6 +295,42 @@ static void clear(void)
 	modf = 1;
 }
 
+static void erase(void)
+{
+	size_t sz = h * s * 512;
+	ssize_t cnt;
+	char *buf;
+	int i;
+	
+	buf = sbrk(sz);
+	if (!buf)
+	{
+		perror(NULL);
+		xit = 1;
+		return;
+	}
+	memset(buf, 0, sz);
+	
+	lseek(devfd, 0, SEEK_SET);
+	for (i = 0; i < c; i++)
+	{
+		printf("\r%i / %i", i, c);
+		fflush(stdout);
+		
+		cnt = write(devfd, buf, sz);
+		if (cnt != sz)
+		{
+			if (cnt >= 0)
+				fprintf(stderr, "%s: Short write\n", devname);
+			else
+				perror(devname);
+			xit = 1;
+			return;
+		}
+	}
+	printf("\r                       \r");
+}
+
 int main(int argc, char **argv)
 {
 	int flag = 0;
@@ -329,6 +366,9 @@ int main(int argc, char **argv)
 			case 'X':
 				flag = bigX = 1;
 				break;
+			case 'Z':
+				flag = bigZ = 1;
+				break;
 			case 'A':
 			case 'D':
 				goto skip;
@@ -360,11 +400,13 @@ skip:
 	
 	if (!flag)
 	{
-		fputs("pcdisk [-Xabcdgnp] [-D disk] [-A partition] [size]\n", stderr);
+		fputs("pcdisk [-XZabcdgnp] [-D disk] [-A partition] [size]\n", stderr);
 		return 1;
 	}
 	
 	opendev();
+	if (bigZ)
+		erase();
 	if (bigX)
 		clear();
 	if (dflag)

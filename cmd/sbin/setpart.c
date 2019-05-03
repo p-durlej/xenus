@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-static unsigned defpart[] = { 5000, 2880, 2120, 10000, 60000, 0, 0 };
+static unsigned defpart[] = { 5000, 2880, 2120, 10000, 10000, 50000, 0 };
 static char *devname = "/dev/rhd0";
 static int devfd;
 static char buf[512];

@@ -32,7 +32,7 @@
 sigret:
 	popal
 	popfl
-	ret
+	lret
 sigret1:
 	addl	$4, %esp
 	ret

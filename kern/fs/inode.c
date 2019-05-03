@@ -27,6 +27,7 @@
 #include <xenus/process.h>
 #include <xenus/printf.h>
 #include <xenus/panic.h>
+#include <xenus/page.h>
 #include <xenus/fs.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -137,7 +138,7 @@ int inode_put(struct inode *ino)
 	if (!ino->refcnt)
 	{
 		if (ino->pipe_buf)
-			free(ino->pipe_buf);
+			pfree(ino->pipe_buf);
 		if (!ino->d.nlink)
 			free_inode(ino);
 		

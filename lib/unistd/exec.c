@@ -24,14 +24,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/stat.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <stdio.h>
 
 int _exec(char *name, char *arg, char *env);
 
@@ -39,38 +36,12 @@ int execve(char *path, char **argv, char **envp)
 {
 	char arg[ARG_MAX];
 	char env[ARG_MAX];
-	char magic[8] = "NOMAGIC";
 	struct stat st;
 	int cnt;
-	int fd;
 	
 	*arg = 0;
 	*env = 0;
 	
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-		goto skip;
-	if (fstat(fd, &st))
-		return -1;
-	if (!S_ISREG(st.st_mode))
-	{
-		errno = EACCES;
-		return -1;
-	}
-	cnt = read(fd, magic, sizeof magic);
-	if (cnt < 0)
-		return -1;
-	close(fd);
-	
-	if (memcmp(magic, "XENUS386", 8))
-	{
-		strcpy(arg, "/bin/sh\377");
-		strcat(arg, path);
-		strcat(arg, "\377");
-		path = "/bin/sh";
-		argv++;
-	}
-skip:
 	while (*argv)
 	{
 		if (strlen(*argv) + strlen(arg) + 1 >= ARG_MAX)

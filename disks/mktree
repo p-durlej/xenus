@@ -38,9 +38,10 @@ mkdir -p tree/bin		\
 	 tree/mnt		\
 	 tree/usr/guest		\
 	 tree/usr/mdec		\
-	 tree/usr/lib		\
 	 tree/usr/spool/mail	\
-	 tree/usr/include
+	 tree/usr/dbg		\
+	 tree/usr/compat	\
+	 tree/usr/tmp
 
 cp -f ../cmd/sh/sh	tree/bin/sh
 cp -f ../cmd/vi/vi	tree/bin/vi
@@ -49,21 +50,18 @@ cp -f ../kern/kern	tree/usr/mdec/xenus
 cp -f ../boot/boot.bin	tree/usr/mdec/boot
 cp -f ../boot/pcmbr.bin	tree/usr/mdec/pcmbr
 
-for x in ../cmd/bin/* ; do
-	if [ -x $x ]; then
-		cp -f $x tree/bin/$(basename $x)
-	fi
+for x in ../cmd/bin/*; do
+	test -x $x && cp -f $x tree/bin/$(basename $x)
 done
 
 for x in ../cmd/sbin/* ; do
-	if [ -x $x ]; then
-		cp -f $x tree/bin/$(basename $x)
-	fi
+	test -x $x && cp -f $x tree/bin/$(basename $x)
 done
 
-cp -r ../include/* tree/usr/include/
-rm -rf tree/usr/include/xenus
-cp ../lib/crt0.o ../lib/libc.a tree/usr/lib/
+for x in ../cmd/dbg/*; do
+	test -x $x && cp -f $x tree/usr/dbg/$(basename $x)
+done
 
-tar cf libh.tar -C tree/usr include lib
+cp ../cmd/comp/minix tree/usr/compat/minix
+
 tar cf base.tar -C tree .

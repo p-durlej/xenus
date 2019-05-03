@@ -24,7 +24,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-all: crt0.o libc.a
+all: crt0.o rawstart.o libc.a
 
 include ../mk/user.mk
 include xenus/sys.mk
@@ -92,7 +92,6 @@ STDLIB_O = stdlib/exit.o	\
 MALLOC_O = malloc/calloc.o	\
 	   malloc/free.o	\
 	   malloc/malloc.o	\
-	   malloc/minit.o	\
 	   malloc/realloc.o
 
 ENVIRON_O = environ.o

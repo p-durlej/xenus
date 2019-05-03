@@ -28,10 +28,14 @@ all: ../lib/libc.a
 	cd sh	&& $(MAKE)
 	cd bin	&& $(MAKE)
 	cd sbin	&& $(MAKE)
+	cd dbg	&& $(MAKE)
+	cd comp	&& $(MAKE)
 	cd vi	&& $(MAKE)
 
 clean:
 	cd sh	&& $(MAKE) clean
 	cd bin	&& $(MAKE) clean
 	cd sbin	&& $(MAKE) clean
+	cd dbg	&& $(MAKE) clean
+	cd comp	&& $(MAKE) clean
 	cd vi	&& $(MAKE) clean

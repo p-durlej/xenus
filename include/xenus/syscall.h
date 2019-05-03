@@ -29,6 +29,7 @@
 #include <sys/utsname.h>
 #include <sys/statfs.h>
 #include <sys/types.h>
+#include <sys/times.h>
 #include <sys/stat.h>
 #include <utime.h>
 
@@ -100,3 +101,7 @@ int	sys__dmesg(char *buf, int len);
 unsigned sys_sleep(unsigned sec);
 int	sys__killu(uid_t ruid, int sig);
 int	sys_utime(char *path, struct utimbuf *tp);
+int	sys__newregion(void *base, size_t len);
+int	sys__setcompat(void *entry);
+pid_t	sys_waitpid(pid_t pid, int *status, int options);
+clock_t	sys_times(struct tms *tms);

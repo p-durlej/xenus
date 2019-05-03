@@ -47,9 +47,11 @@ LIBK_O = ../../lib/string/strncat.o	\
 	 ../../lib/string/memset.o	\
 	 ../../lib/string/memcpy.o	\
 	 ../../lib/setjmp.o		\
+	 ../../lib/malloc/malloc.o	\
+	 ../../lib/malloc/free.o	\
 	 ../../lib/io.o
 
-LIB_O = printf.o minit.o malloc.o free.o $(LIBK_O)
+LIB_O = printf.o $(LIBK_O)
 
 libk.a: $(LIB_O)
 	ar cr libk.a $(LIB_O)

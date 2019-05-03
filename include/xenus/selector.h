@@ -29,3 +29,5 @@
 #define USER_CS		0x001b
 #define USER_DS		0x0023
 #define KERN_TSS	0x0028
+#define USER_SEP_CS	0x0033
+#define USER_SEP_DS	0x003b

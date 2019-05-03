@@ -63,4 +63,8 @@ SYS_O = \
 	xenus/sys_sleep.o \
 	xenus/sys__killu.o \
 	xenus/sys_utime.o \
+	xenus/sys__newregion.o \
+	xenus/sys__setcompat.o \
+	xenus/sys_waitpid.o \
+	xenus/sys_times.o \
 

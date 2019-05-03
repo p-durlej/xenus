@@ -28,6 +28,7 @@
 #include <xenus/syscall.h>
 #include <xenus/console.h>
 #include <xenus/config.h>
+#include <xenus/page.h>
 #include <xenus/umem.h>
 #include <xenus/io.h>
 #include <sys/types.h>
@@ -205,7 +206,7 @@ int sys__dmesg(char *buf, int len)
 		return -1;
 	}
 	
-	p = buf + curr->base;
+	p = buf + USER_BASE;
 	i = (dmesgi + 1) % sizeof dmesg;
 	do
 	{
@@ -215,5 +216,5 @@ int sys__dmesg(char *buf, int len)
 		i %= sizeof dmesg;
 	} while (i != dmesgi);
 	
-	return p - buf - curr->base;
+	return p - buf - USER_BASE;
 }

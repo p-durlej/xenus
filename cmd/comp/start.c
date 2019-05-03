@@ -24,39 +24,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/types.h>
+#include <xenus/config.h>
+#include <unistd.h>
+#include <string.h>
 
-#include "malloc.h"
+#include "mnxcompat.h"
 
-struct mhead *__libc_mhead;
-
-void malloc_init(void *start, size_t size)
+static void split(char *s, char **v)
 {
-	__libc_mhead = start;
+	char *p;
 	
-	__libc_mhead->size = size - sizeof(struct mhead);
-	__libc_mhead->free = 1;
-	__libc_mhead->next = 0;
+	for (p = s; *s; s++)
+		if (*s == '\377')
+		{
+			*v++ = p;
+			p = s + 1;
+			*s = 0;
+		}
+	*v = NULL;
 }
 
-void malloc_add(void *start, size_t size)
+static int count(char *s)
 {
-	struct mhead *mh = start;
+	int cnt;
 	
-	mh->size = size - sizeof *mh;
-	mh->next = __libc_mhead;
-	mh->free = 1;
-	
-	__libc_mhead = mh;
+	for (cnt = 0; *s; s++)
+		if (*s == '\377')
+			cnt++;
+	return cnt;
 }
 
-unsigned malloc_gfree(void)
+void start(char *arg, char *env)
 {
-	struct mhead *mh;
-	unsigned sz = 0;
+	int ac, ec;
+	int i;
 	
-	for (mh = __libc_mhead; mh; mh = mh->next)
-		if (mh->free)
-			sz += mh->size - sizeof *mh;
-	return sz;
+	ac = count(arg);
+	ec = count(env);
+	
+	char *av[ac + 1], *ev[ec + 1];
+	
+	split(arg, av);
+	split(env, ev);
+	environ = ev;
+	
+	unsigned stack[ac + ec + 3];
+	
+	stack[0] = entry;
+	stack[1] = cs;
+	stack[2] = ac;
+	memcpy(stack + 3,      av, (ac + 1) * 4);
+	memcpy(stack + 4 + ac, ev, (ec + 1) * 4);
+	
+	if (sbrk(0) != (void *)ibrk)
+		panic("mnx start brk");
+	
+#if MNXDEBUG
+	for (i = 0; i < ec; i++)
+		if (!strcmp(ev[i], "MNXTRON=1"))
+			trace = 1;
+#endif
+	
+	enter(stack);
+}
+
+int main()
+{
+	panic("mnx main");
 }

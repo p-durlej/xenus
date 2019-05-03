@@ -42,7 +42,7 @@
 #define BLK_SIZE	512
 
 #define BMAP_SIZE	64
-#define IBMAP_SIZE	55
+#define IBMAP_SIZE	57
 
 #define XENUS_S_IFMT	0170000
 #define XENUS_S_IFIFO	0010000
@@ -81,18 +81,18 @@ struct super
 
 struct disk_inode
 {
-	U16 uid;
-	U16 gid;
-	U32 rdev;
-	U32 size;
-	U32 mode;
-	U32 blocks;
-	U32 atime;
-	U32 mtime;
-	U32 ctime;
-	U32 nlink;
-	U32 bmap[BMAP_SIZE];
-	U32 ibmap[IBMAP_SIZE];
+	U32	bmap[BMAP_SIZE];
+	U32	ibmap[IBMAP_SIZE];
+	U32	atime;
+	U32	mtime;
+	U32	ctime;
+	U32	size;
+	U16	blocks;
+	U16	uid;
+	U16	gid;
+	U16	rdev;
+	U16	mode;
+	U16	nlink;
 };
 
 struct file

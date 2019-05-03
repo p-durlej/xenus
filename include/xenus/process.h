@@ -28,6 +28,7 @@
 #include <xenus/intr.h>
 #include <xenus/fs.h>
 #include <sys/types.h>
+#include <sys/times.h>
 #include <signal.h>
 #include <setjmp.h>
 
@@ -35,17 +36,18 @@ struct process
 {
 	pid_t		pid;
 	pid_t		psid;
-	int		euid;
-	int		ruid;
-	int		egid;
-	int		rgid;
+	uid_t		euid;
+	uid_t		ruid;
+	gid_t		egid;
+	gid_t		rgid;
 	
-	int		exit_status;
-	int		exited;
+	unsigned short	exit_status;
+	char		exited;
 	volatile int	time_slice;
 	char		comm[NAME_MAX + 1];
 	struct process *parent;
 	volatile struct systime alarm;
+	struct tms	times;
 	
 	mode_t		umask;
 	struct inode *	tty;
@@ -62,10 +64,14 @@ struct process
 	
 	char *		kstk;
 	jmp_buf		kstate;
-	unsigned	base;
 	unsigned	size;
+	unsigned *	ptab;
 	
-	void *		brk;
+	unsigned	brk;
+	unsigned	stk, astk;
+	unsigned	base, end;
+	unsigned	compat;
+	char *		cpname;
 };
 
 extern struct process *pact[];
