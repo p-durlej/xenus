@@ -67,8 +67,6 @@ static int errtab[] =
 	[ENXIO]		=  6,
 };
 
-#include <stdio.h>
-
 int mnx_error(int err)
 {
 #if MNXDEBUG

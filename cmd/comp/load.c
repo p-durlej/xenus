@@ -73,17 +73,9 @@ static void loadcom(struct aout *hdr, int fd)
 	cs = USER_CS;
 }
 
-void load(char *path)
+void load(char *path, int fd)
 {
 	struct aout hdr;
-	int fd;
-	
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-	{
-		perror(path);
-		abort();
-	}
 	
 	if (read(fd, &hdr, sizeof hdr) != sizeof hdr)
 		panic("mnx hdr");

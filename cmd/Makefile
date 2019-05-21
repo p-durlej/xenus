@@ -25,17 +25,21 @@
 #
 
 all: ../lib/libc.a
+	cd shlib&& $(MAKE)
 	cd sh	&& $(MAKE)
 	cd bin	&& $(MAKE)
 	cd sbin	&& $(MAKE)
 	cd dbg	&& $(MAKE)
 	cd comp	&& $(MAKE)
+	cd comp7&& $(MAKE)
 	cd vi	&& $(MAKE)
 
 clean:
+	cd shlib&& $(MAKE) clean
 	cd sh	&& $(MAKE) clean
 	cd bin	&& $(MAKE) clean
 	cd sbin	&& $(MAKE) clean
 	cd dbg	&& $(MAKE) clean
 	cd comp	&& $(MAKE) clean
+	cd comp7&& $(MAKE) clean
 	cd vi	&& $(MAKE) clean

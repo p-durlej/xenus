@@ -18,23 +18,7 @@ rm /tmp/bin/hdsetup
 rm /tmp/bin/sysup2
 rm /tmp/bin/sysup
 
-rm /tmp/bin/c
-rm /tmp/bin/[
-rm /tmp/bin/pg
-rm /tmp/bin/uureceive
-rm /tmp/bin/l
-rm /tmp/bin/chsh
-rm /tmp/bin/reboot
-
 rm -r /tmp/usr/dbg
-
-ln /tmp/bin/clear /tmp/bin/c
-ln /tmp/bin/test  /tmp/bin/[
-ln /tmp/bin/more  /tmp/bin/pg
-ln /tmp/bin/uudecode /tmp/bin/uureceive
-ln /tmp/bin/ls    /tmp/bin/l
-ln /tmp/bin/passwd /tmp/bin/chsh
-ln /tmp/bin/halt  /tmp/bin/reboot
 
 mkdir /tmp/usr/spool/mail
 

@@ -1,5 +1,5 @@
-mkdir - make directories
+_mkdir_ - make directories
 
-mkdir dir1...
+_mkdir_ *dir1*...
 
- dir1...  directories to create
+ *dir1*...  directories to create

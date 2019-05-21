@@ -33,7 +33,9 @@
 #include <xenus/ualloc.h>
 #include <xenus/umem.h>
 #include <xenus/intr.h>
+#include <sys/reboot.h>
 #include <sys/types.h>
+#include <ulimit.h>
 #include <string.h>
 #include <stddef.h>
 #include <errno.h>
@@ -108,13 +110,18 @@ void *systab[]=
 	sys__setcompat,
 	sys_waitpid,
 	sys_times,
+	sys_getpgrp,
+	sys_ulimit,
+	sys__ftime,
+	sys__sfilsys,
+	sys__readwrite,
 };
 
 struct intr_regs *uregs;
 
-void uerr(int errno)
+void uerr(int err)
 {
-	tucpy(curr->errno, &errno, sizeof(errno));
+	tucpy(curr->errp, &err, sizeof err);
 }
 
 void syscall(struct intr_regs *r)
@@ -198,7 +205,7 @@ int sys_brk(void *addr)
 	unsigned *pt = curr->ptab;
 	int i;
 	
-	if ((unsigned)addr > uregs->esp)
+	if ((unsigned)addr > uregs->esp && uregs->esp >= curr->stk)
 	{
 		uerr(ENOMEM);
 		return -1;
@@ -276,7 +283,12 @@ pid_t sys_setsid(void)
 	curr->psid = curr->pid;
 	inode_put(curr->tty);
 	curr->tty = NULL;
-	return 0;
+	return curr->psid;
+}
+
+pid_t sys_getpgrp(void)
+{
+	return curr->psid;
 }
 
 int sys__iopl(void)
@@ -303,18 +315,21 @@ int sys_reboot(int mode)
 	
 	int i;
 	
-	for (i = 0; i < MAXINODES; i++)
-		if (inode[i].refcnt)
-		{
-			inode[i].refcnt = 1;
-			inode_put(&inode[i]);
-		}
-	init->root->sb->time = time.time;
-	write_super(init->root->sb);
-	sys_sync();
+	if (!(mode & RB_NOSYNC))
+	{
+		for (i = 0; i < MAXINODES; i++)
+			if (inode[i].refcnt)
+			{
+				inode[i].refcnt = 1;
+				inode_put(&inode[i]);
+			}
+		init->root->sb->time = time.time;
+		write_super(init->root->sb);
+		sys_sync();
+	}
 	fd_stop();
 	
-	if (mode)
+	if ((mode & RB_MODE) == RB_AUTOBOOT)
 	{
 		printf("rebooting\n");
 		asm volatile("lidt 0f; 0: .long 0,0");
@@ -348,7 +363,7 @@ void *sys_sbrk(ptrdiff_t incr)
 		return (void *)-1;
 	}
 	
-	if ((unsigned)addr > uregs->esp)
+	if ((unsigned)addr > uregs->esp && uregs->esp >= curr->stk)
 	{
 		uerr(ENOMEM);
 		return (void *)-1;
@@ -377,4 +392,28 @@ int sys__setcompat(void *entry)
 {
 	curr->compat = (unsigned)entry;
 	return 0;
+}
+
+long sys_ulimit(int cmd, long limit)
+{
+	switch (cmd)
+	{
+	case UL_GETFSIZE:
+		return curr->fslimit;
+	case UL_SETFSIZE:
+		if (limit > curr->fslimit && curr->euid)
+		{
+			uerr(EPERM);
+			return -1;
+		}
+		if (limit < 0)
+			goto inval;
+		curr->fslimit = limit;
+		return 0;
+	default:
+		;
+	}
+inval:
+	uerr(EINVAL);
+	return -1;
 }

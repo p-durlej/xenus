@@ -67,4 +67,9 @@ SYS_O = \
 	xenus/sys__setcompat.o \
 	xenus/sys_waitpid.o \
 	xenus/sys_times.o \
+	xenus/sys_getpgrp.o \
+	xenus/sys_ulimit.o \
+	xenus/sys__ftime.o \
+	xenus/sys__sfilsys.o \
+	xenus/sys__readwrite.o \
 

@@ -66,24 +66,16 @@ int uset(void *ptr, int c, unsigned int len)
 
 int fustr(char *dst, char *src, unsigned int len)
 {
-	unsigned limit = curr->brk;
+	int err;
 	
-	if ((unsigned)src >= curr->stk && (unsigned)src < curr->astk)
+	while (len-- > 0)
 	{
-		*dst = 0;
-		return 0;
-	}
-	
-	if ((unsigned)src >= curr->stk)
-		limit = USER_SIZE;
-	
-	while (len-- && (unsigned)src < limit)
-	{
-		*dst = *(char *)kaddr(src);
-		if (!*dst)
+		err = fucpy(dst++, src++, 1);
+		if (err)
+			return err;
+		
+		if (!dst[-1])
 			return 0;
-		dst++;
-		src++;
 	}
 	return EFAULT;
 }

@@ -1,5 +1,5 @@
-mkfifo - make named pipes
+_mkfifo_ - make named pipes
 
-mkfifo name1...
+_mkfifo_ *name1*...
 
- name1...  FIFOs to create
+ *name1*...  FIFOs to create

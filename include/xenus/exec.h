@@ -31,5 +31,15 @@ struct exehdr
 	unsigned	start;
 	unsigned	end;
 	unsigned	stack;
-	unsigned	errno;
+	unsigned	errp;
+};
+
+struct shdr
+{
+	char		magic[8];
+	unsigned	base;
+	unsigned	start;
+	unsigned	end;
+	unsigned	globals;
+	unsigned	globsz;
 };

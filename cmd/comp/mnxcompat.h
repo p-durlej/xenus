@@ -88,7 +88,7 @@ extern int trace;
 
 int mprintf(char *format, ...);
 void panic(char *msg);
-void load(char *path);
+void load(char *path, int pfd);
 void start(char *arg, char *env);
 void siginit(void);
 

@@ -1,10 +1,10 @@
-du - print disk usage
+_du_ - print disk usage
 
-du -aksx [file1...]
+_du_ -*aksx* [*file1*...]
 
- -a  also print non-directories
- -k  print 1024-byte blocks (default is 512 bytes per block)
- -s  display only the total for each operand
- -x  do not cross device boundaries
+ -*a*  also print non-directories
+ -*k*  print 1024-byte blocks (default is 512 bytes per block)
+ -*s*  display only the total for each operand
+ -*x*  do not cross device boundaries
 
- file1...  files to count (default is the current directory)
+ *file1*...  files to count (default is the current directory)

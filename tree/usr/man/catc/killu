@@ -1,6 +1,6 @@
-killu - kill processes by real user id
+_killu_ - kill processes by real user id
 
-killu [-sig] user1...
+_killu_ [-*sig*] *user1*...
 
- sig       signal to send
- user1...  UIDs to kill
+ *sig*       signal to send
+ *user1*...  UIDs to kill

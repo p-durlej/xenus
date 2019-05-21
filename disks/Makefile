@@ -24,7 +24,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-BIN_DEP	 = ../cmd/sh/sh ../cmd/sbin/init ../cmd/comp/minix # XXX
+BIN_DEP	 = ../cmd/sh/sh ../cmd/sbin/init ../cmd/sbin/enable # XXX
 BOOT_DEP = ../boot/boot.bin ../boot/pcmbr.bin
 KERN_DEP = ../kern/kern
 

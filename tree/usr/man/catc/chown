@@ -1,9 +1,9 @@
-chown - change file owner
+_chown_ - change file owner
 
-chown user file1...
-chown uid file1...
+_chown_ *user* *file1*...
+_chown_ *uid* *file1*...
 
- user  new owner's login name
- uid   new owner's numeric uid
+ *user*  new owner's login name
+ *uid*   new owner's numeric uid
 
- file1...  files to change
+ *file1*...  files to change

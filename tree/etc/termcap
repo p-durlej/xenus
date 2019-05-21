@@ -1,0 +1,15 @@
+d0|vt100|vt100-am|vt100am|dec-vt100|dec vt100:\
+	:do=^J:co#80:li#24:cl=\E[;H\E[2J:sf=\ED:\
+	:le=^H:bs:am:cm=\E[%i%d;%dH:nd=\E[C:up=\E[A:\
+	:ce=\E[K:cd=\E[J:so=\E[7m:se=\E[m:us=\E[4m:ue=\E[m:\
+	:md=\E[1m:mr=\E[7m:mb=\E[5m:me=\E[m:is=\E[1;24r\E[24;1H:\
+	:rs=\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h:ks=\E[?1h\E=:ke=\E[?1l\E>:\
+	:ku=\EOA:kd=\EOB:kr=\EOC:kl=\EOD:kb=^H:\
+	:ho=\E[H:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:pt:sr=\EM:vt#3:xn:\
+	:sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
+xn|xenus|XENUS console:\
+	:bs:co#80:li#25:\
+	:cm=\EP%+ %+ :\
+	:ce=\EC:\
+	:up=\EU:\
+	:cl=^L:

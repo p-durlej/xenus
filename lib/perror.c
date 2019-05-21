@@ -69,13 +69,13 @@ char *sys_errlist[] =
 	"No such device (ENXIO)",	// 35
 };
 
-char *strerror(int errno)
+char *strerror(int err)
 {
 	static char msg[32];
 	
-	if (errno < 0 || errno >= sizeof sys_errlist / sizeof *sys_errlist)
+	if (err < 0 || err >= sizeof sys_errlist / sizeof *sys_errlist)
 		return "Unknown error";
-	return sys_errlist[errno];
+	return sys_errlist[err];
 }
 
 void perror(char *str)

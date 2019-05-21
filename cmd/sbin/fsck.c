@@ -25,6 +25,7 @@
  */
 
 #include <xenus/fs.h>
+#include <sys/reboot.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -37,15 +38,21 @@ static void cinode(ino_t dir, ino_t ino, char *name);
 
 static char *devname;
 static char *bam;
-static char *lcm;
-static char *rcm;
+static short *lcm;
+static short *rcm;
 static struct super sb;
 static int devd = -1;
+static dev_t rootdev = -1;
 
 static int vflag;
 static int fflag;
 static int aflag;
+static int lflag;
+static int rflag;
 static int xit;
+
+static int modroot;
+static int modf;
 
 static int brange(blk_t b)
 {
@@ -126,6 +133,7 @@ static int cdirb(ino_t dir, blk_t blk)
 			
 			memset(de, 0, sizeof *de);
 			wrblk(buf, blk);
+			modf = 1;
 			return size;
 		}
 		
@@ -142,9 +150,9 @@ static void cdir(struct disk_inode *di, ino_t ino)
 	int size = 0;
 	int i;
 	
-	for (i = 0; i < BMAP_SIZE; i++)
-		if (di->bmap[i])
-			size = i * BLK_SIZE + cdirb(ino, di->bmap[i]);
+	for (i = 0; i < BMAP0_SIZE; i++)
+		if (di->bmap0[i])
+			size = i * BLK_SIZE + cdirb(ino, di->bmap0[i]);
 	
 	if (di->size < size)
 	{
@@ -153,64 +161,72 @@ static void cdir(struct disk_inode *di, ino_t ino)
 		{
 			di->size = size;
 			wrblk(di, ino);
+			modf = 1;
 		}
 	}
 }
 
 static void cinode(ino_t dir, ino_t ino, char *name)
 {
+	static blk_t map2[128];
+	static blk_t map[128];
+	
 	struct disk_inode di;
-	blk_t map[128];
 	blkcnt_t bc = 0;
-	int i, n;
+	int i, n, m;
 	
 	bused(ino);
 	clink(ino);
+	
+	if (rcm[ino] > 1)
+		return;
 	
 	if (rdblk(&di, ino))
 		return;
 	
 	lcm[ino] = di.nlink;
 	
-	for (i = 0; i < BMAP_SIZE; i++)
+	for (i = 0; i < BMAP0_SIZE; i++)
 	{
-		if (!di.bmap[i])
+		if (!di.bmap0[i])
 			continue;
 		bc++;
 		
-		if (brange(di.bmap[i]))
+		if (brange(di.bmap0[i]))
 		{
-			printf("ino %i blk %i\n", ino, di.bmap[i]);
+			printf("ino %i blk %i\n", ino, di.bmap0[i]);
 			if (fflag)
 			{
-				di.bmap[i] = 0;
+				di.bmap0[i] = 0;
 				wrblk(&di, ino);
+				modf = 1;
 			}
 			continue;
 		}
 		
-		bused(di.bmap[i]);
+		bused(di.bmap0[i]);
 	}
 	
-	for (i = 0; i < IBMAP_SIZE; i++)
+	for (i = 0; i < BMAP1_SIZE; i++)
 	{
-		if (!di.ibmap[i])
+		if (!di.bmap1[i])
 			continue;
 		
-		if (brange(di.ibmap[i]))
+		if (brange(di.bmap1[i]))
 		{
-			printf("ino %i ibmap %i\n", ino, di.ibmap[i]);
+			printf("ino %i ibmap %i\n", ino, di.bmap1[i]);
 			if (fflag)
 			{
-				di.ibmap[i] = 0;
+				di.bmap1[i] = 0;
 				wrblk(&di, ino);
+				modf = 1;
 			}
 			continue;
 		}
-		bused(di.ibmap[i]);
+		bused(di.bmap1[i]);
 		bc++;
 		
-		if (rdblk(map, di.ibmap[i]))
+		if (rdblk(map, di.bmap1[i]))
 			continue;
 		
 		for (n = 0; n < 128; n++)
@@ -221,14 +237,83 @@ static void cinode(ino_t dir, ino_t ino, char *name)
 			if (brange(map[n]))
 			{
 				printf("ino %i indir %i %i\n",
-					ino, di.ibmap[i], map[n]);
+					ino, di.bmap1[i], map[n]);
 				if (fflag)
 				{
 					map[n] = 0;
-					wrblk(map, di.ibmap[i]);
+					wrblk(map, di.bmap1[i]);
+					modf = 1;
 				}
 				continue;
 			}
+			bused(map[n]);
+			bc++;
+		}
+	}
+	
+	for (i = 0; i < BMAP2_SIZE; i++)
+	{
+		if (!di.bmap2[i])
+			continue;
+		
+		if (brange(di.bmap2[i]))
+		{
+			printf("ino %i ibmap %i\n", ino, di.bmap2[i]);
+			if (fflag)
+			{
+				di.bmap2[i] = 0;
+				wrblk(&di, ino);
+				modf = 1;
+			}
+			continue;
+		}
+		bused(di.bmap2[i]);
+		bc++;
+		
+		if (rdblk(map, di.bmap2[i]))
+			continue;
+		
+		for (n = 0; n < 128; n++)
+		{
+			if (!map[n])
+				continue;
+			
+			if (brange(map[n]))
+			{
+				printf("ino %i indir %i %i\n",
+					ino, di.bmap2[i], map[n]);
+				if (fflag)
+				{
+					map[n] = 0;
+					wrblk(map, di.bmap2[i]);
+					modf = 1;
+				}
+				continue;
+			}
+			
+			if (rdblk(map2, map[n]))
+				continue;
+			
+			for (m = 0; m < 128; m++)
+			{
+				if (!map2[m])
+					continue;
+				
+				if (brange(map2[m]))
+				{
+					printf("ino %i indir %i %i %i\n", ino, di.bmap2[i], map[n], map2[m]);
+					if (fflag)
+					{
+						map2[m] = 0;
+						wrblk(map2, map[n]);
+						modf = 1;
+					}
+				}
+				
+				bused(map2[m]);
+				bc++;
+			}
+			
 			bused(map[n]);
 			bc++;
 		}
@@ -242,6 +327,7 @@ static void cinode(ino_t dir, ino_t ino, char *name)
 		{
 			di.blocks = bc;
 			wrblk(&di, ino);
+			modf = 1;
 		}
 	}
 	
@@ -254,6 +340,7 @@ static void cinode(ino_t dir, ino_t ino, char *name)
 		break;
 	case S_IFDIR:
 		rcm[dir]++;
+		rcm[ino]++;
 		cdir(&di, ino);
 		break;
 	default:
@@ -263,6 +350,7 @@ static void cinode(ino_t dir, ino_t ino, char *name)
 			di.mode &= ~S_IFMT;
 			di.mode |=  S_IFREG;
 			wrblk(&di, ino);
+			modf = 1;
 		}
 	}
 }
@@ -275,13 +363,15 @@ static void cnlink(void)
 	for (i = 0; i < sb.nblocks; i++)
 		if (lcm[i] != rcm[i])
 		{
-			printf("ino %i nlink %i real %i\n", i, lcm[i], rcm[i]);
-			if (fflag)
+			if (!lflag)
+				printf("ino %i nlink %i real %i\n", i, lcm[i], rcm[i]);
+			if (fflag || lflag)
 			{
 				if (rdblk(&di, i))
 					continue;
 				di.nlink = rcm[i];
 				wrblk(&di, i);
+				modf = 1;
 			}
 		}
 }
@@ -289,36 +379,38 @@ static void cnlink(void)
 static void cbam(void)
 {
 	blk_t cnt = (sb.nblocks + 4095) / 4096;
-	blk_t i;
+	blk_t i, n;
 	char buf[512];
+	int bad;
 	
 	for (i = 0; i < cnt; i++)
 	{
-		if ((i & 511) == 0)
-		{
-			if (rdblk(buf, i / 512 + sb.bitmap))
-			{
-				i += 511;
-				continue;
-			}
-		}
+		if (rdblk(buf, i + sb.bitmap))
+			continue;
 		
-		if (buf[i & 511] != bam[i])
-		{
-			printf("bam %i is %02x real %02x\n",
-				i, buf[i & 511] & 255, bam[i] & 255);
-			if (fflag)
+		bad = 0;
+		for (n = 0; n < 512; n++)
+			if (buf[n] != bam[i * 512 + n])
 			{
-				buf[i & 511] = bam[i];
-				wrblk(buf, i / 512 + sb.bitmap);
+				printf("bam %i,%i is %02x real %02x\n",
+					i, n, buf[n] & 255, bam[i * 512 + n] & 255);
+				bad = 1;
 			}
+		if (fflag && bad)
+		{
+			memcpy(buf, &bam[i * 512], 512);
+			wrblk(buf, i + sb.bitmap);
+			modf = 1;
 		}
 	}
 }
 
 static void fsck1(char *path)
 {
+	struct stat st;
 	blk_t i;
+	
+	modf = 0;
 	
 	devname = path;
 	devd = open(path, O_RDWR);
@@ -340,28 +432,38 @@ static void fsck1(char *path)
 		printf("dblock  %u\n", sb.dblock);
 	}
 	
-	bam = calloc(3, sb.nblocks);
-	if (!bam)
+	bam = calloc(sb.nblocks, sizeof *bam);
+	lcm = calloc(sb.nblocks, sizeof *lcm);
+	rcm = calloc(sb.nblocks, sizeof *rcm);
+	
+	if (!bam || !lcm || !rcm)
 	{
 		if (!vflag)
 			printf("nblocks %u\n", sb.nblocks);
 		goto fail;
 	}
-	lcm = bam + sb.nblocks;
-	rcm = lcm + sb.nblocks;
 	
-	for (i = 0; i < sb.bitmap + (sb.nblocks + 4095) / 4096; i++)
+	for (i = 0; i < sb.dblock; i++)
 		bused(i);
 	
 	cinode(sb.root, sb.root, "/");
+	rcm[sb.root]--;
 	cnlink();
 	cbam();
+	
+	if (modf)
+	{
+		fstat(devd, &st);
+		if (st.st_rdev == rootdev)
+			modroot = 1;
+	}
 	
 	close(devd);
 	free(bam);
 	
 	bam  = NULL;
 	devd = -1;
+	modf = 0;
 	return;
 fail:
 	perror(devname);
@@ -399,6 +501,7 @@ static void checkall(void)
 
 int main(int argc, char **argv)
 {
+	struct stat st;
 	char *p;
 	
 	argv++;
@@ -418,6 +521,12 @@ int main(int argc, char **argv)
 			case 'v':
 				vflag++;
 				break;
+			case 'l':
+				lflag = 1;
+				break;
+			case 'r':
+				rflag = 1;
+				break;
 			default:
 				fprintf(stderr, "fsck: bad option '%c'\n", *p);
 				return 1;
@@ -433,6 +542,13 @@ int main(int argc, char **argv)
 		return 0;
 	}
 	
+	if (rflag)
+	{
+		if (stat("/", &st))
+			perror("/: stat");
+		rootdev = st.st_dev;
+	}
+	
 	sync();
 	
 	if (aflag)
@@ -444,6 +560,13 @@ int main(int argc, char **argv)
 		
 		argv++;
 		argc--;
+	}
+	
+	if (rflag && modroot)
+	{
+		fputs("fsck: rebooting\n", stderr);
+		sleep(1);
+		reboot(RB_AUTOBOOT | RB_NOSYNC);
 	}
 	
 	return xit;

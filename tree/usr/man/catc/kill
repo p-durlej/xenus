@@ -1,9 +1,9 @@
-kill - kill processes
+_kill_ - kill processes
 
-kill [-sig] pid1...
-kill -l
+_kill_ [-*sig*] *pid1*...
+_kill_ -*l*
 
- -l  list signal names with their numbers
+ -*l*  list signal names with their numbers
 
- sig      signal to send
- pid1...  PIDs to kill
+ *sig*      signal to send
+ *pid1*...  PIDs to kill

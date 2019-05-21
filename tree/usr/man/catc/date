@@ -1,6 +1,6 @@
-date - print and set the date and time
+_date_ - print and set the date and time
 
-date [MMDDhhmmss[CCYY]]
+_date_ [*MMDDhhmmss*[*CCYY*]]
 
- MMDDhhmmss[CCYY]  date and time to set (default is to print the current date
+ *MMDDhhmmss*[*CCYY*]  date and time to set (default is to print the current date
                    and time)

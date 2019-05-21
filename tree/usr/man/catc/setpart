@@ -1,9 +1,9 @@
-setpart - print and set XENUS partition sizes
+_setpart_ - print and set XENUS partition sizes
 
-setpart [-D device] [size1...]
-setpart [-D device] -I
+_setpart_ [-D *device*] [*size1*...]
+_setpart_ [-D *device*] -I
 
- -D device  specify device name (default is /dev/rhd0)
- -I         initialize the partition table with defaults
+ -*D* *device*  specify device name (default is /dev/rhd0)
+ -*I*         initialize the partition table with defaults
 
- size1...  partition sizes to set (default is to print partition sizes)
+ *size1*...  partition sizes to set (default is to print partition sizes)

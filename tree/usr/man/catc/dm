@@ -1,6 +1,6 @@
-dm - daemonize a command
+_dm_ - daemonize a command
 
-dm cmd [arg1...]
+_dm_ *cmd* [*arg1*...]
 
-  cmd      command to run
-  arg1...  args to pass to the command
+  *cmd*      command to run
+  *arg1*...  args to pass to the command

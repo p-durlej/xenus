@@ -1,0 +1,5 @@
+
+	.globl	main
+
+main:
+	hlt

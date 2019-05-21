@@ -1,7 +1,7 @@
-mail - send and receive mail
+_mail_ - send and receive mail
 
-mail [rcpt1...]
-mail -f [mbox]
+_mail_ [*rcpt1*...]
+_mail_ -f [*mbox*]
 
- rcpt1...  recipients to send mail to
- mbox      mailbox to read
+ *rcpt1*...  recipients to send mail to
+ *mbox*      mailbox to read

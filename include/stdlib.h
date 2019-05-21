@@ -28,8 +28,6 @@
 
 #define NULL	0
 
-extern char **environ;
-
 void	abort(void);
 
 void *	malloc(size_t size);

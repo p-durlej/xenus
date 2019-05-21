@@ -1,9 +1,15 @@
-man - display manual pages
+_man_ - display manual pages
 
-man [section] name1...
-man -i [section]
+_man_ [*section*] *name1*...
+_man_ -*i* [*section*]
 
- -i  display section index (default is all sections)
+ -*i*  display section index (default is all sections)
  
- section  manual section to search for name (c or f)
- name1... manual page name
+ *section*  manual section to search for name (*c* or *f*)
+ *name1*... manual page name
+
+The *MANCOLOR* environment variable controls whether to apply attibutes
+to the output of the *man* command.
+
+*MANCOLOR=1* enables attributed output, *MANCOLOR=2* enables ANSI colors,
+and *MANCOLOR=0* forces plain text output.

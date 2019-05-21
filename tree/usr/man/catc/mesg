@@ -1,8 +1,8 @@
-mesg - enable or disable message reception
+_mesg_ - enable or disable message reception
 
-mesg [yn]
+_mesg_ [*yn*]
 
- y  enable message reception
- n  disable message reception
+ *y*  enable message reception
+ *n*  disable message reception
 
-Without y or n, show the current status.
+Without *y* or *n*, show the current status.

@@ -1,5 +1,5 @@
-uudecode - decode uuencoded files
+_uudecode_ - decode uuencoded files
 
-uudecode [file1...]
+_uudecode_ [*file1*...]
 
- file1...  files to decode (default is stdin)
+ *file1*...  files to decode (default is stdin)

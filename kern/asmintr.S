@@ -29,8 +29,10 @@
 
 	.globl asm_syscall
 	.globl asm_minix
+	.globl asm_v7unx
 	.globl asm_afterfork
 	.globl xecode
+	.globl user_mode
 
 #define SAVE_REGS	\
 	pushl	%eax;	\
@@ -93,6 +95,9 @@ asm_syscall:
 asm_minix:
 	INTRHAND(minix, 0)
 
+asm_v7unx:
+	INTRHAND(v7unx, 0)
+
 #define EXCHAND(nr)		\
 .globl asm_exc_ ## nr;		\
 asm_exc_ ## nr ## :		\
@@ -140,6 +145,16 @@ IRQHAND(12)
 IRQHAND(13)
 IRQHAND(14)
 IRQHAND(15)
+
+user_mode:
+	movl	uregs, %esi
+	subl	$64, %esp
+	movl	$16, %ecx
+	movl	%esp, %edi
+	cld
+	rep movsl
+	RESTORE_REGS
+	iret
 
 asm_afterfork:
 	RESTORE_REGS

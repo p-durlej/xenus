@@ -24,34 +24,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
 
-static char cs[] = "abcdefghijklmnopqrstuvwxyz"
-		   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		   "0123456789./";
-
-char *crypt(char *key, char *salt)
+static void pdiag(pid_t pid, char *s)
 {
-	static char obuf[35];
-	
-	char ibuf[10];
-	int len;
-	uint8_t *p;
-	int i;
-	
-	len = strlen(key);
-	if (len > 8)
-		len = 8;
-	
-	memset(ibuf, 0, sizeof ibuf);
-	memcpy(ibuf, salt, 2);
-	memcpy(ibuf, key, len);
-	
-	p = md5(ibuf);
-	for (i = 0; i < 16; i++)
-		sprintf(obuf + i * 2 + 2, "%02x", p[i]);
-	
-	obuf[0] = salt[0];
-	obuf[1] = salt[1];
-	return obuf;
+	if (pid >= 0)
+		printf("%s() = %i\n", s, pid);
+	else
+		perror(s);
+}
+
+int main(void)
+{
+	pdiag(getpgrp(), "getpgrp");
+	pdiag(setsid(), "setsid");
+	pdiag(getpgrp(), "getpgrp");
+	return 0;
 }

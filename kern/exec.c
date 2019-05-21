@@ -42,6 +42,7 @@
 #include <errno.h>
 
 extern char sigret, sigret1, sigrete;
+extern unsigned iflags;
 
 void updatecpu();
 
@@ -95,6 +96,39 @@ int loadbin(struct inode *ino, unsigned base)
 	return 0;
 }
 
+static int open_ino(struct inode *ino, int *fdp)
+{
+	struct file *file;
+	int err;
+	int fd;
+	
+	err = file_get(&file);
+	if (err)
+	{
+		inode_put(ino);
+		return err;
+	}
+	
+	err = fd_get(&fd, 0);
+	if (err)
+	{
+		inode_put(ino);
+		file_put(file);
+		return err;
+	}
+	
+	file->read  = reg_read;
+	file->write = reg_write;
+	file->ioctl = NULL;
+	
+	curr->fd[fd].file = file;
+	file->flags = 0;
+	file->ino   = ino;
+	
+	*fdp = fd;
+	return 0;
+}
+
 int do_exec(char *name, char *arg, char *env)
 {
 	unsigned arga, enva, siga, stka, nama;
@@ -102,9 +136,11 @@ int do_exec(char *name, char *arg, char *env)
 	char *oname = NULL;
 	char *narg = NULL;
 	struct exehdr hdr;
+	struct inode *oino = NULL;
 	struct inode *ino;
 	unsigned *pt = curr->ptab;
 	struct rwreq rw;
+	int fd = -1;
 	int err;
 	int i;
 	
@@ -119,6 +155,7 @@ again:
 	
 	if (!S_ISREG(ino->d.mode) || !(ino->d.mode & 0111))
 	{
+		inode_put(oino);
 		inode_put(ino);
 		return EACCES;
 	}
@@ -126,6 +163,7 @@ again:
 	err = inode_chkperm(ino, X_OK);
 	if (err)
 	{
+		inode_put(oino);
 		inode_put(ino);
 		return err;
 	}
@@ -133,14 +171,13 @@ again:
 	err = loadhdr(ino, &hdr);
 	if (err)
 	{
+		inode_put(oino);
 		inode_put(ino);
 		return err;
 	}
 	
 	if (memcmp(hdr.magic, "XENUS386", 8))
 	{
-		inode_put(ino);
-		
 		for (i = 0; i < sizeof hdr.magic && hdr.magic[i]; i++)
 		{
 			unsigned c = hdr.magic[i];
@@ -176,14 +213,23 @@ again:
 			strcat(narg, arg);
 			arg = narg;
 			name = SHELL;
+			
+			inode_put(ino);
 			goto again;
 		}
 		
-		if (hdr.magic[0] == 1 && hdr.magic[1] == 3)
+		if (!memcmp(hdr.magic, "XENUSHL\1", 8))
+			compat = "/bin/shlib";
+		else if (hdr.magic[0] == 1 && hdr.magic[1] == 3)
 			compat = "/usr/compat/minix";
+		else if (hdr.magic[0] == 8 && hdr.magic[1] == 1)
+			compat = "/usr/compat/v7unx";
+		else if (hdr.magic[0] == 7 && hdr.magic[1] == 1)
+			compat = "/usr/compat/v7unx";
 		
 		if (!compat)
 		{
+			inode_put(ino);
 			pfree(narg);
 			return ENOEXEC;
 		}
@@ -191,16 +237,19 @@ again:
 		if (oname)
 		{
 			printf("bad %s\n", name);
+			inode_put(ino);
 			pfree(narg);
 			return ENOEXEC;
 		}
 		oname = name;
 		name = compat;
+		oino = ino;
 		goto again;
 	}
 	
 	if (hdr.base >= USER_SIZE)
 	{
+		inode_put(oino);
 		inode_put(ino);
 		pfree(narg);
 		return ENOEXEC;
@@ -208,6 +257,7 @@ again:
 	
 	if (hdr.end > USER_SIZE || hdr.stack > USER_SIZE || hdr.end + hdr.stack > USER_SIZE)
 	{
+		inode_put(oino);
 		inode_put(ino);
 		pfree(narg);
 		return ENOEXEC;
@@ -231,7 +281,7 @@ again:
 	pg_update();
 	
 	curr->size	= 0;
-	curr->errno	= (void *)hdr.errno;
+	curr->errp	= (void *)hdr.errp;
 	curr->sigret	= siga;
 	curr->sigret1	= siga + (&sigret1 - &sigret);
 	curr->sig_usr	= 0;
@@ -249,9 +299,18 @@ again:
 	if (err)
 	{
 		sendksig(curr, SIGABRT);
+		inode_put(oino);
 		inode_put(ino);
 		pfree(narg);
 		return 0;
+	}
+	
+	if (oino)
+	{
+		if (S_ISUID & oino->d.mode)
+			curr->euid = oino->d.uid;
+		if (S_ISGID & oino->d.mode)
+			curr->egid = oino->d.gid;
 	}
 	
 	if (S_ISUID & ino->d.mode)
@@ -266,13 +325,29 @@ again:
 	{
 		sendksig(curr, SIGABRT);
 		pfree(narg);
+		inode_put(oino);
 		return 0;
 	}
+	
+	if (oino && (err = open_ino(oino, &fd)))
+	{
+		sendksig(curr, SIGABRT);
+		pfree(narg);
+		inode_put(oino);
+		return 0;
+	}
+	
+	curr->linkmode = 0;
+	curr->namlen = NAME_MAX;
+	
+	if (fpu)
+		asm volatile("fninit");
 	
 	uregs->eip	= hdr.start;
 	uregs->eax	= 0;
 	uregs->ebx	= arga;
-	uregs->ecx	= 0;
+	uregs->ecx	= fd;
+	uregs->edx	= 0;
 	uregs->esi	= enva;
 	uregs->edi	= nama;
 	uregs->ebp	= 0;
@@ -283,7 +358,7 @@ again:
 	uregs->gs	= USER_DS;
 	uregs->ss	= USER_DS;
 	uregs->esp	= arga;
-	uregs->eflags  &= 0xffc0822a;
+	uregs->eflags	= iflags;
 	
 	if (oname)
 	{

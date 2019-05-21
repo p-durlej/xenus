@@ -1,18 +1,18 @@
-find - search for files
+_find_ - search for files
 
-find path1... pred1...
+_find_ *path1*... *pred1*...
 
- path1...  paths to search in
- pred1...  predicate list
+ *path1*...  paths to search in
+ *pred1*...  predicate list
 
 Supported predicates:
 
- -inum  i  inode number is i
- -name  n  name matches shell pattern n
- -type  t  inode type is t (b, c, d, f, p)
- -perm  m  file mode & 07777 is m
- -perm -m  all set bits in mode are set in the file mode
+ -inum  *i*  inode number is *i*
+ -name  *n*  name matches shell pattern *n*
+ -type  *t*  inode type is *t* (*b*, *c*, *d*, *f*, *p*)
+ -perm  *m*  file mode & 07777 is *m*
+ -perm -*m*  all set bits in *mode* are set in the file mode
 
  -print    print the current pathname
- -exec cmd arg1... [{}] ;
+ -exec *cmd* *arg1*... [{}] ;
            execute a command replacing {} with the pathname

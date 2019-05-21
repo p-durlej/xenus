@@ -1,5 +1,5 @@
-umount - unmount a file system
+_umount_ - unmount a file system
 
-umount dir
+_umount_ *dir*
 
- dir  mount point of the file system to be unmounted
+ *dir*  mount point of the file system to be unmounted

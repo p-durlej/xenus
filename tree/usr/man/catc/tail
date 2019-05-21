@@ -1,6 +1,6 @@
-tail - print final lines of files
+_tail_ - print final lines of files
 
-tail [-count] [file1...]
+_tail_ [-*count*] [*file1*...]
 
- count  number of final lines to print (default is 10)
- file1  files to print (default is stdin)
+ *count*  number of final lines to print (default is 10)
+ *file1*  files to print (default is stdin)

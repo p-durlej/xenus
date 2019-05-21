@@ -1,0 +1,6 @@
+_enable_ - enable TTYs
+
+_enable_ [-*TYPE*] [*tty1*...]
+
+ *tty1*...  terminal lines to enable
+ *TYPE*     also set the terminal type of the specified lines to *TYPE*

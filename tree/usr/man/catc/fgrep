@@ -1,5 +1,5 @@
-fgrep - search for a fixed string
+_fgrep_ - search for a fixed string
 
-fgrep pattern [file1...]
+_fgrep_ *pattern* [*file1*...]
 
- file1...  files to search in (default is stdin)
+ *file1*...  files to search in (default is stdin)

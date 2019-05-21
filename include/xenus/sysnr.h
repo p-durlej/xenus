@@ -92,3 +92,8 @@
 #define SYS__setcompat	65
 #define SYS_waitpid	66
 #define SYS_times	67
+#define SYS_getpgrp	68
+#define SYS_ulimit	69
+#define SYS__ftime	70
+#define SYS__sfilsys	71
+#define SYS__readwrite	72

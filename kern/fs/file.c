@@ -62,6 +62,9 @@ int file_put(struct file *file)
 	{
 		if (S_ISFIFO(file->ino->d.mode))
 			pipe_close(file->ino, file->flags);
+		if (S_ISCHR(file->ino->d.mode))
+			chr_close(file->ino);
+		
 		return inode_put(file->ino);
 	}
 	return 0;

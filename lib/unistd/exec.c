@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <environ.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>

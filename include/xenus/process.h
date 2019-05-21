@@ -49,7 +49,10 @@ struct process
 	volatile struct systime alarm;
 	struct tms	times;
 	
+	blk_t		fslimit;
 	mode_t		umask;
+	char		linkmode;
+	short		namlen;
 	struct inode *	tty;
 	struct inode *	cwd;
 	struct inode *	root;
@@ -60,7 +63,7 @@ struct process
 	int		sig_usr;
 	volatile int	sig;
 	unsigned	sigret, sigret1;
-	int *		errno;
+	int *		errp;
 	
 	char *		kstk;
 	jmp_buf		kstate;
@@ -72,6 +75,8 @@ struct process
 	unsigned	base, end;
 	unsigned	compat;
 	char *		cpname;
+	
+	char		fpust[108];
 };
 
 extern struct process *pact[];
@@ -81,6 +86,7 @@ extern int npact;
 extern struct process *curr;
 extern struct process *init;
 extern int resched;
+extern int fpu;
 
 int sendsig(struct process *p, unsigned int sig);
 int sendusig(struct process *p, unsigned int sig);
@@ -93,3 +99,6 @@ void wakeup(void);
 void sched(void);
 void idle(void);
 void pmd(int sig);
+
+void fsave(void *st);
+void fload(void *st);

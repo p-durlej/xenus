@@ -1,10 +1,10 @@
-cp - copy files
+_cp_ - copy files
 
-cp name1... dir
-cp name1 name2
+_cp_ *name1*... *dir*
+_cp_ *name1* *name2*
 
- name1...  files to copy into dir
- dir       destination directory
+ *name1*...  files to copy into *dir*
+ *dir*       destination directory
 
- name1  existing file pathname
- name2  pathname of the copy
+ *name1*  existing file pathname
+ *name2*  pathname of the copy

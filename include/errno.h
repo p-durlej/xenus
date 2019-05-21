@@ -24,8 +24,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-extern int	errno;
-extern char *	sys_errlist[];
+#ifndef _ERRNO_H
+#define _ERRNO_H
+
+#define errno (*_errp)
+extern int *_errp;
 
 #define ENOENT		1
 #define EACCES		2
@@ -62,3 +65,5 @@ extern char *	sys_errlist[];
 #define EISDIR		33
 #define ETXTBSY		34 /* unused in XENUS */
 #define ENXIO		35
+
+#endif

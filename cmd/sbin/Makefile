@@ -28,7 +28,7 @@ include ../../mk/user.mk
 
 CMD :=	init mkfs mknod mount umount login mkboot chroot halt killf	\
 	getty fsck mkuser setclock chown chgrp pcdisk setroot		\
-	fdfmt setpart dmesg killu
+	fdfmt setpart dmesg killu link unlink enable
 
 all: $(CMD)
 

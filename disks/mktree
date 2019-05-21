@@ -44,7 +44,9 @@ mkdir -p tree/bin		\
 	 tree/usr/tmp
 
 cp -f ../cmd/sh/sh	tree/bin/sh
-cp -f ../cmd/vi/vi	tree/bin/vi
+cp -f ../cmd/vi/vi	tree/bin/vix
+cp -f ../cmd/shlib/shlib tree/bin/shlib
+cp -f ../cmd/shlib/shello tree/usr/dbg/shello
 
 cp -f ../kern/kern	tree/usr/mdec/xenus
 cp -f ../boot/boot.bin	tree/usr/mdec/boot
@@ -62,6 +64,7 @@ for x in ../cmd/dbg/*; do
 	test -x $x && cp -f $x tree/usr/dbg/$(basename $x)
 done
 
+cp ../cmd/comp7/v7unx tree/usr/compat/v7unx
 cp ../cmd/comp/minix tree/usr/compat/minix
 
 tar cf base.tar -C tree .

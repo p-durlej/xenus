@@ -1,5 +1,5 @@
-su - change user identity
+_su_ - change user identity
 
-su [user]
+_su_ [*user*]
 
- user  user account to change to
+ *user*  user account to change to

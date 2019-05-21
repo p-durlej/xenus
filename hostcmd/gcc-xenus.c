@@ -56,7 +56,9 @@ void add_str(char ***l, char *s)
 int main(int argc, char **argv)
 {
 	char **cc_arg;
+	char *libc = SYSTEM "/lib/libc.a";
 	char *crt = SYSTEM "/lib/crt0.o";
+	int shared = 1;
 	int eflag = 0;
 	int high = 0;
 	int link = 1;
@@ -86,6 +88,7 @@ int main(int argc, char **argv)
 			i--;
 			
 			crt = SYSTEM "/lib/rawstart.o";
+			shared = 0;
 			continue;
 		}
 		if (!strcmp(argv[i], "-H"))
@@ -97,7 +100,32 @@ int main(int argc, char **argv)
 			high = 1;
 			continue;
 		}
+		if (!strcmp(argv[i], "-static"))
+		{
+			memmove(argv + i, argv + i + 1, (argc - i) * sizeof *argv);
+			argc--;
+			i--;
+			
+			shared = 0;
+			continue;
+		}
+		if (!strcmp(argv[i], "-shared"))
+		{
+			memmove(argv + i, argv + i + 1, (argc - i) * sizeof *argv);
+			argc--;
+			i--;
+			
+			shared = 1;
+			continue;
+		}
 	}
+	if (shared)
+	{
+		libc = SYSTEM "/cmd/shlib/libc.a";
+		crt = SYSTEM "/cmd/shlib/crt0.o";
+		shared = 1;
+	}
+	
 	add_str(&cc_arg, GCC);
 	add_str(&cc_arg, "-march=i386");
 	add_str(&cc_arg, "-m32");
@@ -109,6 +137,8 @@ int main(int argc, char **argv)
 	add_str(&cc_arg, "-nostdlib");
 	add_str(&cc_arg, "-nostdinc");
 	add_str(&cc_arg, "-I" SYSTEM "/include");
+	if (shared)
+		add_str(&cc_arg, "-D__SHARED__");
 	if (link)
 	{
 		add_str(&cc_arg, "-L" SYSTEM "/lib");
@@ -138,7 +168,7 @@ int main(int argc, char **argv)
 	for (i = 1; i < argc; i++)
 		add_str(&cc_arg, argv[i]);
 	if (link)
-		add_str(&cc_arg, SYSTEM "/lib/libc.a");
+		add_str(&cc_arg, libc);
 #if 0
 	for (i = 0; cc_arg[i]; i++)
 		fprintf(stderr, "%s ", cc_arg[i]);

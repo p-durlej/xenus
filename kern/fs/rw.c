@@ -34,7 +34,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#define MAXFSZ	((BMAP_SIZE + IBMAP_SIZE * 128) * 512)
+#define MAXFSZ	((BMAP0_SIZE + BMAP1_SIZE * 128 + BMAP2_SIZE * 128 * 128) * 512)
 #define MAXOFF	0x80000000
 
 ssize_t sys_read(int fd, void *buf, size_t count)
@@ -246,6 +246,8 @@ int reg_write(struct rwreq *req)
 	size_t count	  = req->count;
 	off_t pos	  = req->start;
 	
+	if (count + pos > curr->fslimit * BLK_SIZE)
+		return EFBIG;
 	if (count + pos > MAXFSZ)
 		return EFBIG;
 	

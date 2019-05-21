@@ -139,7 +139,7 @@ int inode_put(struct inode *ino)
 	{
 		if (ino->pipe_buf)
 			pfree(ino->pipe_buf);
-		if (!ino->d.nlink)
+		if (!ino->d.nlink && !ino->sb->ro)
 			free_inode(ino);
 		
 		if (ino->dirty && (err = inode_write(ino)))

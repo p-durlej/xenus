@@ -13,6 +13,7 @@ mkdir /tmp/usr/compat /tmp/usr/mnx # /dev/null
 cp /usr/man/catc/* /tmp/usr/man/catc/
 cp /usr/man/catf/* /tmp/usr/man/catf/
 cp /usr/compat/* /tmp/usr/compat/
+cp /usr/ubin/* /tmp/usr/ubin/
 mkboot /dev/hd0
 umount /tmp/usr
 umount /tmp

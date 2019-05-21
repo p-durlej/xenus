@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sys/reboot.h>
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
 		p = argv[0];
 	
 	if (!strcmp(p, "reboot"))
-		mode = 1;
+		mode = RB_AUTOBOOT;
 	
 	if (argc > 2)
 		usage();
@@ -68,9 +69,9 @@ int main(int argc, char **argv)
 	if (argc > 1)
 	{
 		if (!strcmp(argv[1], "-h"))
-			mode = 0;
+			mode = RB_HALT;
 		if (!strcmp(argv[1], "-r"))
-			mode = 1;
+			mode = RB_AUTOBOOT;
 	}
 	
 	reboot(mode);

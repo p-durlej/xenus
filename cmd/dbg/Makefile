@@ -26,7 +26,7 @@
 
 include ../../mk/user.mk
 
-CMD :=	rawargs rawenv badexec alloc newreg
+CMD :=	rawargs rawenv badexec alloc newreg sid loop hlt sig
 
 all: $(CMD)
 

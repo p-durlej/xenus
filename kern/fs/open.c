@@ -26,6 +26,7 @@
 
 #include <xenus/syscall.h>
 #include <xenus/process.h>
+#include <xenus/sfilsys.h>
 #include <xenus/config.h>
 #include <xenus/printf.h>
 #include <xenus/umem.h>
@@ -276,10 +277,6 @@ int sys_close(int fd)
 		uerr(err);
 		return -1;
 	}
-	ino = curr->fd[fd].file->ino;
-	
-	if (S_ISCHR(ino->d.mode))
-		err = chr_close(ino);
 	
 	fd_put(fd);
 	return err;
@@ -763,5 +760,20 @@ fail:
 		uerr(err);
 		return -1;
 	}
+	return 0;
+}
+
+int sys__sfilsys(int flags)
+{
+	int namlen = NAME_MAX;
+	int linkmode = 0;
+	
+	if (flags & SF_NAM14)
+		namlen = 14;
+	if (flags & SF_OLINK)
+		linkmode = 2;
+	
+	curr->linkmode = linkmode;
+	curr->namlen   = namlen;
 	return 0;
 }

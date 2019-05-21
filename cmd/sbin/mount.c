@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <errno.h>
 
+int _readwrite(void);
+
 static int mtfd = -1;
 static int r;
 
@@ -138,8 +140,20 @@ static int showall(void)
 
 int main(int argc,char **argv)
 {
-	if (argc == 2 && !strcmp(argv[1], "-a"))
-		return mountall();
+	if (argc == 2)
+	{
+		if (!strcmp(argv[1], "-a"))
+			return mountall();
+		if (!strcmp(argv[1], "-w"))
+		{
+			if (_readwrite())
+			{
+				perror(NULL);
+				return 1;
+			}
+			return 0;
+		}
+	}
 	
 	if (argc < 2)
 		return showall();

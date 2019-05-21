@@ -34,12 +34,21 @@
 #include <stdio.h>
 #include <errno.h>
 
-int all	  = 0;
-int kbyte = 0;
-int psub  = 1;
-int xdev  = 1;
+#define MAXLINKS	1024
 
-int procopt(char *str)
+static struct link
+{
+	dev_t dev;
+	ino_t ino;
+} links[MAXLINKS];
+static int nlinks;
+
+static int all	 = 0;
+static int kbyte = 0;
+static int psub  = 1;
+static int xdev  = 1;
+
+static int procopt(char *str)
 {
 	str++;
 	
@@ -71,7 +80,23 @@ int procopt(char *str)
 	return 1;
 }
 
-blkcnt_t do_du(char *path, dev_t dev, int sub)
+static int counted(dev_t dev, ino_t ino)
+{
+	int i;
+	
+	for (i = 0; i < nlinks; i++)
+		if (links[i].dev == dev && links[i].ino == ino)
+			return 1;
+	if (nlinks >= MAXLINKS)
+		return 0;
+	
+	links[nlinks].dev = dev;
+	links[nlinks].ino = ino;
+	nlinks++;
+	return 0;
+}
+
+static blkcnt_t do_du(char *path, dev_t dev, int sub)
 {
 	blkcnt_t cnt = 0;
 	struct stat st;
@@ -86,6 +111,8 @@ blkcnt_t do_du(char *path, dev_t dev, int sub)
 	}
 	
 	if (st.st_dev != dev && dev != -1)
+		return 0;
+	if (st.st_nlink > 1 && counted(st.st_dev, st.st_ino))
 		return 0;
 	if (!xdev)
 		dev = st.st_dev;

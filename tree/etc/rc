@@ -1,6 +1,13 @@
 
 PATH=/bin
 
+mount -w
+
+mknod /dev/fd0 b 2 0
+fsck -l /dev/fd0
+
+makedev
+
 ln /bin/clear /bin/c
 ln /bin/test /bin/[
 ln /bin/more /bin/pg
@@ -8,34 +15,45 @@ ln /bin/uudecode /bin/uureceive
 ln /bin/ls /bin/l
 ln /bin/passwd /bin/chsh
 ln /bin/halt /bin/reboot
+ln /bin/enable /bin/disable
 
 chmod  755 / /bin /dev /etc /udd /mnt /usr /usr/mdec
 chmod  755 /usr/man /usr/man/catc /usr/man/catf
 chmod  755 /usr/spool /usr/spool/mail
+chmod  755 /usr/doc
 chmod  711 /bin/*
 chmod  644 /etc/*
 chmod  600 /etc/spwd
 chmod  644 /usr/mdec/* /usr/man/catc/* /usr/man/catf/*
+chmod  644 /usr/doc/*
 chmod 6711 /bin/passwd /bin/ps /bin/su /bin/newgrp /bin/mail
 chmod 2711 /bin/write
 chmod  700 /bin/makedev
 chmod 1777 /tmp /usr/tmp
 chmod  755 /usr/compat
 chmod  711 /usr/compat/minix
+chmod  711 /usr/compat/v7unx
 
 chgrp 2 /bin/write
-
-makedev
 
 chmod 755 /usr/guest
 chown 1   /usr/guest
 chgrp 1   /usr/guest
 
 chstk -262144 /usr/compat/minix
-chstk -262144 /bin/tar
+chstk -262144 /usr/compat/v7unx
+chstk -262144 /bin/shlib
+
+chmod 755 /usr/ubin
+chmod 711 /usr/ubin/*
+chmod 6711 /usr/ubin/mkdir /usr/ubin/rmdir
+
+ln /usr/ubin/vi /usr/ubin/view
+ln /usr/ubin/vi /usr/ubin/edit
+ln /usr/ubin/vi /usr/ubin/ex
 
 mkboot -r /dev/fd0
 
-rm /etc/rc
+mv /etc/rc.fd /etc/rc
 sleep 1
 exec halt -r

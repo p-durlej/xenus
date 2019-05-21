@@ -38,9 +38,25 @@ struct termios tp, otp;
 int nlin, ncol;
 int lin, col;
 int tty_fd;
+int bflag;
+int cflag;
+int bmode;
+int umode;
+int qmode;
 volatile int quit;
 
 char *inv = "", *rst = "";
+char *bold = "";
+char *und = "";
+
+void setmode(void)
+{
+	fputs(rst, stdout);
+	if (bmode)
+		fputs(bold, stdout);
+	if (umode)
+		fputs(und, stdout);
+}
 
 void pputc(unsigned char ch)
 {
@@ -90,7 +106,7 @@ void pputc(unsigned char ch)
 		int cnt;
 		char c;
 		
-		printf("%s(more)%s", inv, rst);
+		printf("%s(more)%s", inv, bmode ? bold : rst);
 		fflush(stdout);
 		
 		do
@@ -110,12 +126,43 @@ void pputc(unsigned char ch)
 		
 		printf("\r      \r");
 		fflush(stdout);
+		setmode();
 		
 		if (c == ' ')
 			lin = 0;
 		else
 			lin--;
 	}
+}
+
+void cputc(char ch)
+{
+	if (qmode)
+	{
+		qmode = 0;
+		pputc(ch);
+		return;
+	}
+	
+	if (bflag)
+		switch (ch)
+		{
+		case '\\':
+			qmode = 1;
+			return;
+		case '_':
+			umode = !umode;
+			setmode();
+			return;
+		case '*':
+			bmode = !bmode;
+			setmode();
+			return;
+		default:
+			;
+		}
+	
+	pputc(ch);
 }
 
 void do_more(char *name)
@@ -147,7 +194,7 @@ void do_more(char *name)
 		}
 		
 		for (i = 0;i < cnt && !quit; i++)
-			pputc(buf[i]);
+			cputc(buf[i]);
 	}
 	
 	if (fd != STDIN_FILENO)
@@ -165,7 +212,9 @@ void intr(int nr)
 int main(int argc, char **argv)
 {
 	char *tt = getenv("TERM");
+	char *p;
 	int dlin = 25;
+	int vt = 0;
 	int i;
 	
 	if (getenv("COLUMNS"))	ncol = atoi(getenv("COLUMNS"));
@@ -173,15 +222,28 @@ int main(int argc, char **argv)
 	
 	if (!strncmp(tt, "vt", 2))
 	{
+		bold = "\033[1m";
 		inv = "\033[7m";
+		und = "\033[4m";
 		rst = "\033[0m";
 		dlin = 24;
+		vt = 1;
 	}
 	
 	if (!strcmp(tt, "xenus"))
 	{
+		bold = "\033b";
 		inv = "\033i";
-		rst = "\033I";
+		und = "\033n";
+		rst = "\033I\033B\033N";
+	}
+	
+	if (!strcmp(tt, "test"))
+	{
+		bold = "<B>";
+		inv = "<I>";
+		und = "<U>";
+		rst = "<R>";
 	}
 	
 	nlin = nlin ? nlin : dlin;
@@ -200,6 +262,36 @@ int main(int argc, char **argv)
 	tp = otp;
 	tp.c_lflag &= ~(ICANON | ECHO);
 	tcsetattr(tty_fd, TCSANOW, &tp);
+	
+	if (*argv[1] == '-')
+	{
+		for (p = argv[1] + 1; *p; p++)
+			switch (*p)
+			{
+			case 'b':
+				bflag = 1;
+				break;
+			case 'c':
+				cflag = 1;
+				break;
+			case 'x':
+				bold = "";
+				inv = "";
+				und = "";
+				break;
+			default:
+				fprintf(stderr, "Bad option '%c'\n", *p);
+				return 1;
+			}
+		argv++;
+		argc--;
+	}
+	
+	if (vt && cflag)
+	{
+		bold = "\033[1;33m";
+		und = "\033[1;36m";
+	}
 	
 	for (i = 1; i < argc; i++)
 		do_more(argv[i]);

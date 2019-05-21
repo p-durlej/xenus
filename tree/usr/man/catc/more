@@ -1,7 +1,11 @@
-more - display file contents page by page
+_more_ - display file contents page by page
 
-more [name1...]
+_more_ [-*bcx*] [*name1*...]
 
- name1...  files to show
+ *-b*  display *\*text\** and *\_text\_* in the input as bold and underlined *text*
+ *-c*  emit ANSI color sequences instead of bold and underlined text
+ *-x*  display bold and underlined output as plain text
 
-The COLUMNS and LINES environment variables override the default terminal size.
+ *name1*...  files to show
+
+The *COLUMNS* and *LINES* environment variables override the default terminal size.

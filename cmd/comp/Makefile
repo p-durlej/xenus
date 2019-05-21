@@ -26,6 +26,8 @@
 
 include ../../mk/user.mk
 
+CFLAGS += -static
+
 OBJ =	mnxcompat.o	\
 	load.o		\
 	enter.o		\
@@ -39,10 +41,10 @@ OBJ =	mnxcompat.o	\
 all: minix minix.elf
 
 minix: $(OBJ)
-	$(CC) -R -H -o minix $(OBJ)
+	$(CC) $(CFLAGS) -R -H -o minix $(OBJ)
 
 minix.elf: $(OBJ)
-	$(CC) -R -H -e -o minix.elf $(OBJ)
+	$(CC) $(CFLAGS) -R -H -e -o minix.elf $(OBJ)
 
 clean:
 	-rm -f minix minix.elf *.o

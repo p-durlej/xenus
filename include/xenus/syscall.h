@@ -30,12 +30,13 @@
 #include <sys/statfs.h>
 #include <sys/types.h>
 #include <sys/times.h>
+#include <sys/ftime.h>
 #include <sys/stat.h>
 #include <utime.h>
 
 extern struct intr_regs *uregs;
 
-void uerr(int errno);
+void uerr(int err);
 
 int	sys__sysmesg(char *msg, unsigned int len);
 int	sys__exit(int status);
@@ -105,3 +106,8 @@ int	sys__newregion(void *base, size_t len);
 int	sys__setcompat(void *entry);
 pid_t	sys_waitpid(pid_t pid, int *status, int options);
 clock_t	sys_times(struct tms *tms);
+pid_t	sys_getpgrp(void);
+long	sys_ulimit(int cmd, long limit);
+int	sys__ftime(struct timeb *buf);
+int	sys__sfilsys(int flags);
+int	sys__readwrite(void);

@@ -1,4 +1,5 @@
 umask 22
+mount -w
+fsck -afr
 true > /etc/mtab
-fsck -af
 mount -a

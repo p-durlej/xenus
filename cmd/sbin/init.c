@@ -30,6 +30,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ulimit.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -44,6 +45,7 @@
 #define IOBASE		0x70
 #define NTASKS		32
 
+int _killf(char *path, int sig);
 int _ctty(char *path);
 int _iopl(void);
 
@@ -55,6 +57,7 @@ struct init_task
 };
 
 struct init_task task[NTASKS];
+int reload;
 
 unsigned bcdint(unsigned v)
 {
@@ -134,9 +137,21 @@ void single()
 	while (wait(NULL) != pid);
 }
 
-void readtab()
+void killtty(struct init_task *t)
+{
+	char path[PATH_MAX];
+	
+	strcpy(path, "/dev/");
+	strcat(path, t->tty);
+	
+	if (_killf(path, 9))
+		perror("_killf");
+}
+
+void readtab(int reload)
 {
 	FILE *f;
+	int t;
 	int i;
 	
 	f = fopen("/etc/ttys", "r");
@@ -162,21 +177,41 @@ void readtab()
 			*p = 0;
 		
 		if (strlen(buf) < 3)
+		{
+			errno = EINVAL;
 			goto fail;
+		}
 		
-		task[i].tty  = strdup(buf + 2);
-		task[i].type = buf[1];
-		
+		t = buf[1];
 		if (buf[0] == '0')
-			task[i].type = 0;
+			t = 0;
+		
+		if (task[i].tty)
+		{
+			if (strcmp(task[i].tty, buf + 2) || task[i].type != t)
+				killtty(&task[i]);
+			
+			if (strcmp(task[i].tty, buf + 2))
+			{
+				free(task[i].tty);
+				task[i].tty = NULL;
+			}
+		}
+		
+		task[i].type = t;
 		
 		if (!task[i].tty)
-			goto fail;
+		{
+			task[i].tty = strdup(buf + 2);
+			if (!task[i].tty)
+				goto fail;
+		}
 	}
 	return;
 fail:
 	perror("init: /etc/ttys");
-	single();
+	if (!reload)
+		single();
 }
 
 void respawn()
@@ -188,7 +223,7 @@ void respawn()
 	{
 		t = &task[i];
 		
-		if (!t->pid && t->tty)
+		if (!t->pid && t->tty && t->type)
 		{
 			char ty[2] = "X";
 			pid_t pid;
@@ -202,7 +237,7 @@ void respawn()
 			
 			if (!pid)
 			{
-				if (setsid())
+				if (setsid() < 0)
 				{
 					perror("init: setsid");
 					_exit(255);
@@ -252,6 +287,12 @@ void sigterm(int nr)
 	signal(nr, SIG_IGN);
 	for (;;)
 		pause();
+}
+
+void sighup(int nr)
+{
+	signal(nr, sighup);
+	reload = 1;
 }
 
 void mkutmp(void)
@@ -308,6 +349,23 @@ void runrc()
 	while (wait(NULL) != pid);
 }
 
+static void sulimit(void)
+{
+	char buf[81];
+	FILE *f;
+	
+	f = fopen("/etc/ulimit", "r");
+	if (!f)
+	{
+		if (errno != ENOENT)
+			perror("/etc/ulimit");
+		return;
+	}
+	if (fgets(buf, sizeof buf, f))
+		ulimit(UL_SETFSIZE, atoi(buf));
+	fclose(f);
+}
+
 int main(int argc, char **argv, char **envp)
 {
 	int status;
@@ -322,19 +380,23 @@ int main(int argc, char **argv, char **envp)
 	signal(SIGTERM, sigterm);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, SIG_IGN);
+	signal(SIGHUP, sighup);
 	
 	hwclock();
+	sulimit();
 	// single();
 	runrc();
 	
 	_ctty(NULL);
-	readtab();
+	readtab(0);
 	mkutmp();
 	
 	for (;;)
 	{
 		respawn();
 		pid = wait(&status);
+		if (reload)
+			readtab(1);
 		if (pid > 1)
 			dead(pid, status);
 	}

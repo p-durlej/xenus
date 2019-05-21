@@ -25,6 +25,7 @@
  */
 
 #include <xenus/config.h>
+#include <environ.h>
 #include <unistd.h>
 #include <string.h>
 

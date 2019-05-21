@@ -63,6 +63,7 @@ void *	sbrk(ptrdiff_t incr);
 pid_t	getpid(void);
 pid_t	getppid(void);
 pid_t	setsid(void);
+pid_t	getpgrp(void);
 
 uid_t	getuid(void);
 uid_t	geteuid(void);
@@ -83,8 +84,6 @@ char *	ttyname(int fd);
 int	isatty(int fd);
 
 int	getpassn(char *buf, size_t len);
-
-extern char **environ;
 
 #define SEEK_SET	0
 #define SEEK_CUR	1

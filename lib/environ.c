@@ -24,8 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <environ.h>
 #include <string.h>
-#include <stdlib.h>
 
 char *getenv(char *n)
 {

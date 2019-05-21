@@ -293,7 +293,7 @@ int main(int argc, char **argv)
 		printf("New password: ");
 		fflush(stdout);
 		getpassn(passwd1, sizeof(passwd1));
-		printf("\nRetype: ");
+		printf("\nConfirmation: ");
 		fflush(stdout);
 		getpassn(passwd2, sizeof(passwd2));
 		printf("\n");

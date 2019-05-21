@@ -1,10 +1,10 @@
-mknod - create special files
+_mknod_ - create special files
 
-mknod name bc major minor
-mknod name p
+_mknod_ *name* *bc* *major* *minor*
+_mknod_ *name* *p*
 
- b  create a block special file
- c  create a character special file
- p  create a FIFO
+ *b*  create a block special file
+ *c*  create a character special file
+ *p*  create a FIFO
 
- major,minor  device number
+ *major*,*minor*  device number

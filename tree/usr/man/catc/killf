@@ -1,6 +1,6 @@
-killf - kill processes by active files
+_killf_ - kill processes by active files
 
-killf [-sig] file1...
+_killf_ [-*sig*] *file1*...
 
-  -sig      signal number
-  file1...  files to release
+  -*sig*      signal number
+  *file1*...  files to release

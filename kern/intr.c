@@ -82,6 +82,7 @@ void asm_exc_18();
 
 void asm_syscall();
 void asm_minix();
+void asm_v7unx();
 
 void *irq_vect[16];
 
@@ -184,6 +185,7 @@ void intr_init()
 	
 	intr_setvect(0x80, asm_syscall, 3);
 	intr_setvect(0x21, asm_minix, 3);
+	intr_setvect(0x30, asm_v7unx, 3);
 }
 
 void irq_ena(int nr)
@@ -329,13 +331,31 @@ void dumpregs(struct intr_regs *r)
 			{
 				if (fucpy(&v, (void *)a, 4))
 					break;
-				printf(" %x", v);
+				printf(" ");
+				prhex(v, 8);
 			}
 			if (!i)
 				printf(" bad\n");
 			else
 				printf("\n");
 		}
+	}
+	if (r->cs == USER_CS)
+	{
+		unsigned char c;
+		
+		printf("code");
+		for (i = 0, a = r->eip; i < 16; i++, a += 1)
+		{
+			if (fucpy(&c, (void *)a, 1))
+				break;
+			printf(" ");
+			prhex(c, 2);
+		}
+		if (!i)
+			printf(" bad\n");
+		else
+			printf("\n");
 	}
 }
 
@@ -363,12 +383,36 @@ fail:
 	sendsig(curr, SIGABRT);
 }
 
+void v7unx(struct intr_regs *r)
+{
+	unsigned stk[] =
+	{
+		r->eip,
+	};
+	
+	if (!curr->compat)
+		goto fail;
+	
+	r->esp -= sizeof stk;
+	r->eip = curr->compat;
+	
+	if (tucpy((void *)r->esp, stk, sizeof stk))
+		goto fail;
+	
+	return;
+fail:
+	sendsig(curr, SIGABRT);
+}
+
 static void sendxsig(struct intr_regs *r, int nr, int sig)
 {
-	printf("pid %i comm %s trap %i user 0x%x\n", curr->pid, curr->comm, nr, r->eip);
-	dumpregs(r);
+	if (!curr->ruid)
+	{
+		printf("pid %i comm %s trap %i user 0x%x\n", curr->pid, curr->comm, nr, r->eip);
+		dumpregs(r);
+	}
 	
-	sendksig(curr, sig);
+	sendsig(curr, sig);
 }
 
 void exception(struct intr_regs *r, int nr)
@@ -386,6 +430,7 @@ void exception(struct intr_regs *r, int nr)
 		sendxsig(r, nr, SIGFPE);
 		break;
 	case 6:
+	case 7:
 		sendxsig(r, nr, SIGILL);
 		break;
 	case 1:
@@ -395,7 +440,6 @@ void exception(struct intr_regs *r, int nr)
 	case 17:
 		sendxsig(r, nr, SIGTRAP);
 		break;
-	case 7:
 	case 8:
 	case 13:
 		sendxsig(r, nr, SIGBUS);

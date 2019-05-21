@@ -1,6 +1,6 @@
-touch - set file modification time to the current time
+_touch_ - set file modification time to the current time
         create new files
 
-touch file1...
+_touch_ *file1*...
 
- file1...  files to touch or create
+ *file1*...  files to touch or create

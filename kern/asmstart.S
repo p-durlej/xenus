@@ -44,14 +44,17 @@
 	.globl	scs_desc
 	.globl	sds_desc
 	.globl	kstktop
-	.globl	user_mode
+	.globl	iflags
+	.globl	fsave
+	.globl	fload
+	.globl	fpu
 
 _start:
 	ljmp	$0x0, $start
 
 	.org	_start + 0x10
 root:	.long	0x200
-rootro:	.long	0
+rootro:	.long	1
 ndisks:	.long	4
 dsleep:	.long	0
 mem:	.long	0
@@ -79,7 +82,8 @@ start:
 	lgdt	gdt_desc
 	lidt	idt_desc
 	movl	%cr0, %eax
-	orl	$5, %eax
+	andl	$~4, %eax
+	orl	$0x23, %eax
 	movl	%eax, %cr0
 	ljmp	$KERN_CS, $start32
 
@@ -169,29 +173,41 @@ fillbss:
 	inc	%ecx
 	cmp	$_end,%ecx
 	jne	fillbss
+	call	chkfpu
+	pushfl
+	popl	%eax
+	orl	$0x200, %eax
+	movl	%eax, iflags
 	jmp	main
 
-user_mode:
-	movl	4(%esp), %edx
-	movl	8(%esp), %ecx
-	movl	12(%esp), %ebx
-	movl	$USER_DS,%eax
-	movw	%ax,%ds
-	movw	%ax,%es
-	movw	%ax,%fs
-	movw	%ax,%gs
-	pushl	%eax
-	pushl	%edx
-	pushl	$USER_CS
-	pushl	%ecx
-	movl	$0x00000000,%eax
-	movl	$0x00000000,%ecx
-	movl	$0x00000000,%edx
-	movl	$0x00000000,%esi
-	movl	$0x00000000,%edi
-	lret
+chkfpu:
+	fninit
+	fnstsw	0f
+	cmpw	$0, 0f
+	je	chkfpu_ret
+	movl	$0, fpu
+	movl	%cr0, %eax
+	orl	$4, %eax
+	movl	%eax, %cr0
+chkfpu_ret:
+	ret
+0:	.word	0xffff
+
+fsave:
+	movl	4(%esp), %eax
+	fnsave	(%eax)
+	ret
+
+fload:
+	movl	4(%esp), %eax
+	fninit
+	frstor	(%eax)
+	ret
+
+	.data
+fpu:	.long	1
 
 	.bss
 idt:	.space	0x0800
-
+iflags:	.space	4
 dma_buf:.space	4096

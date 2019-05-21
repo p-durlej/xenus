@@ -1,7 +1,7 @@
-sh - command interpreter
+_sh_ - command interpreter
 
-sh [-c command]
+_sh_ [-*c* *command*]
 
- -c  execute command and exit (default is to run interactively)
+ -*c*  execute command and exit (default is to run interactively)
 
- command  command to execute
+ *command*  command to execute

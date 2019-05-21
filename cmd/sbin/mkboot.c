@@ -61,7 +61,7 @@ static unsigned	part[7];
 static char *	device;
 static char *	image = "/usr/mdec/xenus";
 static char *	boot = "/usr/mdec/boot";
-static int	rootro;
+static int	rootro = 1;
 static int	ndisks = 4;
 static int	dsleep;
 static int	cnmode = 3;
@@ -153,7 +153,7 @@ static void mkboot(void)
 		if (z)
 		{
 			printf("root %i,%i\n", major(rootdev), minor(rootdev));
-			if (rootro)
+			if (!rootro)
 				printf("rootro %i\n", rootro);
 			if (ndisks)
 				printf("ndisks %i\n", ndisks);
@@ -212,6 +212,9 @@ static int procopt(char *s)
 		case 'r':
 			rootro = 1;
 			break;
+		case 'w':
+			rootro = 0;
+			break;
 		case 's':
 			dsleep = 1;
 			break;
@@ -250,7 +253,7 @@ int main(int argc,char **argv)
 	
 	if (argc < 1 || argc > 2)
 	{
-		fputs("mkboot [-rsm01234] dev\n", stderr);
+		fputs("mkboot [-rwsm01234] dev\n", stderr);
 		return 255;
 	}
 	

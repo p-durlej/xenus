@@ -50,7 +50,8 @@ STRING_O = string/strncat.o	\
 	   string/strdup.o	\
 	   string/memcpy.o	\
 	   string/memset.o	\
-	   string/strtok.o
+	   string/strtok.o	\
+	   string/strsignal.o
 
 UNISTD_O = unistd/creat.o	\
 	   unistd/exec.o	\
@@ -104,13 +105,16 @@ CTYPE_O = ctype/isalnum.o ctype/isalpha.o ctype/iscntrl.o ctype/isdigit.o \
 	  ctype/islower.o ctype/isprint.o ctype/ispunct.o ctype/isspace.o \
 	  ctype/isupper.o ctype/isxdigit.o
 
+TIME_O = time/tzset.o	\
+	 time/ftime.o	\
+	 time/time.o
+
 LIB_O = libc.o		\
 	io.o		\
 	perror.o	\
 	stdarg.o	\
 	setjmp.o	\
 	dirent.o	\
-	time.o		\
 	siglist.o	\
 	termios.o	\
 	errno.o		\
@@ -123,7 +127,10 @@ LIB_O = libc.o		\
 	$(PASSWD_O)	\
 	$(CTYPE_O)	\
 	$(MALLOC_O)	\
+	$(TIME_O)	\
 	$(SYS_O)
+
+CFLAGS += -static
 
 libc.a: $(LIB_O)
 	rm -f libc.a

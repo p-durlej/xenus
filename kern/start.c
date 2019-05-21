@@ -36,6 +36,7 @@
 
 extern dev_t root;
 extern int rootro;
+extern int fpu;
 
 int errno = 0;
 
@@ -88,6 +89,7 @@ static void hw_init(void)
 	banner();
 	
 	printf("mem = %i\n", mem + low);
+	printf("fpu = %i\n", fpu);
 }
 
 int main(void)

@@ -40,6 +40,7 @@ static char **argv;
 static int argc;
 
 char **environ;
+char ***_envp = &environ;
 
 char __libc_panic_msg[]="c ";
 

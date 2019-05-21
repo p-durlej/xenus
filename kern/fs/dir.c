@@ -112,7 +112,7 @@ int dir_creat(struct inode *dir, char *name, ino_t ino)
 	int fi = -1;
 	int i;
 	
-	if (strlen(name) > NAME_MAX)
+	if (strlen(name) > curr->namlen)
 		return ENAMETOOLONG;
 	if (!*name)
 		return EINVAL;

@@ -15,6 +15,7 @@ _base:
 
 .globl _start
 _start:
+	push	%ecx
 	push	%edi
 	push	%esi
 	push	%ebx

@@ -1,7 +1,7 @@
-rm - remove files and directories
+_rm_ - remove files and directories
 
-rm [-r] name1...
+_rm_ [-*r*] *name1*...
 
- -r  remove directories recursively
+ -*r*  remove directories recursively
 
- name1...  files to remove
+ *name1*...  files to remove

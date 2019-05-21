@@ -25,3 +25,4 @@
  */
 
 int errno;
+int *_errp = &errno;

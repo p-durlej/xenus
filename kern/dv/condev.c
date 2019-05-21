@@ -37,9 +37,16 @@
 
 #define VGASZ	(PCCON_NLIN * PCCON_NCOL * 2)
 
+extern int cnmode;
+
 struct tty con_ttyld;
+static int cd_uattr;
+static int cd_battr;
 static int cd_attr0;
 static int cd_attr;
+static int cd_bold;
+static int cd_inv;
+static int cd_und;
 
 int con_ttyname(struct inode *ino, char *buf)
 {
@@ -88,6 +95,34 @@ static void con_clreol(void)
 		*p = ' ' | cd_attr;
 }
 
+static void cd_nattr(void)
+{
+	unsigned a = cd_attr0;
+	
+	if (cd_bold && ((a & 0x0f00) == 0x0700))
+	{
+		a &= 0xf0ff;
+		a |= cd_battr;
+	}
+	
+	if (cd_und)
+	{
+		a &= 0xf0ff;
+		a |= cd_uattr;
+	}
+	
+	if (cd_inv)
+	{
+		a  = (cd_attr0 & 0x0f00) << 4;
+		a |= (cd_attr0 & 0xf000) >> 4;
+	}
+	
+	if (cd_bold)
+		a |= 0x0800;
+	
+	cd_attr = a;
+}
+
 int con_cwrite(struct tty *tty, char c, int nodelay)
 {
 	static int ctrl = 0;
@@ -114,11 +149,28 @@ int con_cwrite(struct tty *tty, char c, int nodelay)
 			con_setcursor();
 			break;
 		case 'i':
-			cd_attr  = (cd_attr0 & 0x0f00) << 4;
-			cd_attr |= (cd_attr0 & 0xf000) >> 4;
+			cd_inv = 1;
+			cd_nattr();
 			break;
 		case 'I':
-			cd_attr = cd_attr0;
+			cd_inv = 0;
+			cd_nattr();
+			break;
+		case 'n':
+			cd_und = 1;
+			cd_nattr();
+			break;
+		case 'N':
+			cd_und = 0;
+			cd_nattr();
+			break;
+		case 'b':
+			cd_bold = 1;
+			cd_nattr();
+			break;
+		case 'B':
+			cd_bold = 0;
+			cd_nattr();
 			break;
 		case 'U':
 			if (con_y)
@@ -215,4 +267,6 @@ void condev_init()
 	chr_driver[VGA_DEVN].write	= vga_write;
 	
 	cd_attr0 = cd_attr = con_attr;
+	cd_battr = (cnmode == 7) ? 0x0f00 : 0x0e00;
+	cd_uattr = (cnmode == 7) ? 0x0100 : 0x0b00;
 }

@@ -1,13 +1,13 @@
-ln - make links to files
+_ln_ - make links to files
 
-ln name1... dir
-ln name1 name2
-ln name
+_ln_ *name1*... *dir*
+_ln_ *name1* *name2*
+_ln_ *name*
 
- name1...  files to link into dir
- dir       destination directory
+ *name1*...  files to link into dir
+ *dir*       destination directory
 
- name1  existing file pathname
- name2  pathname of the link
+ *name1*  existing file pathname
+ *name2*  pathname of the link
 
- name   pathname of the file to link in the current directory
+ *name*   pathname of the file to link in the current directory

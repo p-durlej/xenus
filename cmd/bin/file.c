@@ -70,6 +70,12 @@ static void guess(char *path, ssize_t cnt)
 		return;
 	}
 	
+	if (cnt > 8 && !strncmp(buf, "XENUSHL\1", 8))
+	{
+		puts("executable, uses shlib");
+		return;
+	}
+	
 	for (i = 0; i < cnt; i++)
 		if (!isprint(buf[i]) && buf[i] != '\n' && buf[i] != '\r' &&
 		    buf[i] != '\t')

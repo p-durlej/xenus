@@ -115,17 +115,6 @@ int do_unlink(char *name, int spec)
 	if (err)
 		goto fail;
 	
-	if (S_ISDIR(ino->d.mode))
-	{
-		if (!spec)
-		{
-			err = EISDIR;
-			goto fail;
-		}
-		dir->d.nlink--;
-		dir->dirty = 2;
-	}
-	
 	if (ino->sb != dir->sb)
 	{
 		err = EXDEV;
@@ -137,7 +126,24 @@ int do_unlink(char *name, int spec)
 		goto fail;
 	
 	if (S_ISDIR(ino->d.mode))
-		ino->d.mode = S_IFREG;
+		switch (spec)
+		{
+		case 0:
+			err = EISDIR;
+			goto fail;
+		case 1:
+			ino->d.mode = S_IFREG;
+			ino->d.nlink--;
+			dir->d.nlink--;
+			dir->dirty = 2;
+			break;
+		case 2:
+			if (curr->euid)
+			{
+				err = EISDIR;
+				goto fail;
+			}
+		}
 	
 	ino->d.nlink--;
 	ino->dirty = 2;
@@ -189,7 +195,7 @@ int do_mkdir(char *path, mode_t mode)
 	dir->d.nlink++;
 	dir->dirty = 1;
 	
-	ino->d.nlink = 1;
+	ino->d.nlink = 2;
 	ino->dirty   = 2;
 fail:
 	inode_put(ino);
@@ -220,7 +226,7 @@ int do_rmdir(char *path)
 	return do_unlink(path, 1);
 }
 
-int do_link(char *name1, char *name2)
+int do_link(char *name1, char *name2, int spec)
 {
 	struct inode *ino = NULL;
 	struct inode *dir = NULL;
@@ -236,7 +242,7 @@ int do_link(char *name1, char *name2)
 		goto fail;
 	}
 	
-	if (S_ISDIR(ino->d.mode))
+	if (S_ISDIR(ino->d.mode) && (!spec || curr->euid))
 	{
 		err = EISDIR;
 		goto fail;
@@ -435,7 +441,7 @@ int sys_unlink(char *name)
 	if (err)
 		goto fail;
 	
-	err = do_unlink(lname, 0);
+	err = do_unlink(lname, curr->linkmode);
 	if (err)
 		goto fail;
 	return 0;
@@ -458,7 +464,7 @@ int sys_link(char *name1, char *name2)
 	if (err)
 		goto fail;
 	
-	err = do_link(lname1, lname2);
+	err = do_link(lname1, lname2, curr->linkmode);
 	if (err)
 		goto fail;
 	return 0;

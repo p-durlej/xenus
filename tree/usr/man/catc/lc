@@ -1,5 +1,5 @@
-lc - multi-column directory listing
+_lc_ - multi-column directory listing
 
-lc [dir1...]
+_lc_ [*dir1*...]
 
- dir1...  directories to list
+ *dir1*...  directories to list

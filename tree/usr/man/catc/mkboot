@@ -1,8 +1,9 @@
-mkboot - install and configure loader and the kernel on a device
+_mkboot_ - install and configure loader and the kernel on a device
 
-mkboot [-rsm01234] dev
+_mkboot_ [-*rwsm01234*] *dev*
 
- -01234  limit the maximum number of hard drives
- -r      read-only root fs
- -s      put the disks to sleep after 5 minutes of inactivity
- -m      monochrome (mode 7) display
+ -*01234*  limit the maximum number of hard drives
+ -*r*      read-only root fs
+ -*w*      read-write root fs
+ -*s*      put the disks to sleep after 5 minutes of inactivity
+ -*m*      monochrome (mode 7) display

@@ -1,41 +1,41 @@
-stty - print and set terminal line settings
+_stty_ - print and set terminal line settings
 
-stty [[-]flag1...] [cc value] [speed]
-stty [-a]
+_stty_ [[-]*flag1*...] [*cc* *value*] [*speed*]
+-stty_ [-*a*]
 
- -a         print all the current settings
+ -*a*         print all the current settings
 
- -flag1...  flags to clear
- flag1...   flags to set
- speed      new baud rate
- cc         control character selector
- value      control character value
+ -*flag1*...  flags to clear
+ *flag1*...   flags to set
+ *speed*      new baud rate
+ *cc*         control character selector
+ *value*      control character value
 
 Flags:
 
-  isig    generate SIGINT and SIGQUIT on ^C and ^\
-  icanon  canonical input mode
-  echo    echo back typed characters
-  echoe   echo erase as ^H, space, ^H
-  crtbs   echo erase as ^H
+  *isig*    generate SIGINT and SIGQUIT on ^C and ^\
+  *icanon*  canonical input mode
+  *echo*    echo back typed characters
+  *echoe*   echo erase as ^H, space, ^H
+  *crtbs*   echo erase as ^H
 
-  opost   enable output post-processing
-  onlcr   translate output CR to CR, LF
+  *opost*   enable output post-processing
+  *onlcr*   translate output CR to CR, LF
 
-  hard    set modes suitable for a hardcopy terminal
-  crt     set modes suitable for a CRT
+  *hard*    set modes suitable for a hardcopy terminal
+  *crt*     set modes suitable for a CRT
 
-  xhup    hangup on ^X, do not allow users to disable xhup or change the speed
+  *xhup*    hangup on ^X, do not allow users to disable xhup or change the speed
 
 Control character selectors:
 
-  erase, kill, intr, quit, eof
+  *erase*, *kill*, *intr*, *quit*, *eof*
 
 Control character values:
 
-  X      literal character X
-  ^X     control-X
-  del    delete (^?)
-  bs     backspace (^H)
-  both   accept both ^H and ^?
-  undef  disable the control character
+  *X*      literal character *X*
+  *^X*     control-*X*
+  *del*    delete (^?)
+  *bs*     backspace (^H)
+  *both*   accept both ^H and ^?
+  *undef*  disable the control character

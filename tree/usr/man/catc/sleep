@@ -1,5 +1,5 @@
-sleep - delay for an amount of time
+_sleep_ - delay for an amount of time
 
-sleep s
+-sleep_ *s*
 
- s  number of seconds to wait
+ *s*  number of seconds to wait

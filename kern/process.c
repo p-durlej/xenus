@@ -51,8 +51,8 @@ volatile int nidle;
 struct process *curr = proc;
 struct process *init = proc;
 
-void user_mode(unsigned stack, unsigned start, unsigned args);
 int do_exec(char *name, char *arg, char *env);
+void user_mode(void);
 
 int sendsig(struct process *p, unsigned int sig);
 int sendusig(struct process *p, unsigned int sig);
@@ -259,9 +259,16 @@ void sched()
 	
 	struct process *p;
 	
+	if (fpu)
+		fsave(curr->fpust);
+	
 	resched = 0;
 	if (setjmp(curr->kstate))
+	{
+		if (fpu)
+			fload(curr->fpust);
 		return;
+	}
 	curr = &none;
 	
 	while (nidle >= npact)
@@ -351,6 +358,8 @@ void proc_init()
 	
 	uregs = &noregs;
 	
+	curr->fslimit	= 2048;
+	
 	curr->pid	= 1;
 	curr->psid	= 1;
 	curr->parent	= curr;
@@ -383,7 +392,7 @@ void proc_init()
 	
 	if (do_exec("/bin/init", "/bin/init\377", ""))
 		panic("can't exec init");
-	user_mode(uregs->esp, uregs->eip, uregs->ebx);
+	user_mode();
 }
 
 void pmd(int sig)

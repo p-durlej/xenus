@@ -55,6 +55,8 @@
 #define xenus_major(rdev)		((rdev) >> 8)
 #define xenus_minor(rdev)		((rdev) & 255)
 
+#define MAXLNK		64
+
 typedef unsigned int	U32;
 typedef unsigned short	U16;
 typedef unsigned char	U8;
@@ -112,6 +114,15 @@ struct file
 	int ndents;
 };
 
+struct link
+{
+	dev_t	sdev;
+	ino_t	sino;
+	U32	nino;
+	U16	nlink;
+} links[MAXLNK];
+int nlinks;
+
 struct super	sb;
 int		pflag;
 int		vflag;
@@ -167,7 +178,10 @@ void initmap()
 			nb = 0;
 		}
 		else
+		{
+			nbits = 0;
 			l1 = 0;
+		}
 		
 		memset(buf, 255, l1);
 		memset(buf + l1, 0, sizeof(buf) - l1);
@@ -243,6 +257,18 @@ U32 translate_mode(mode_t mode)
 	return ret;
 }
 
+void patchlinks(void)
+{
+#define NLOFF ((unsigned)&((struct disk_inode *)0)->nlink)
+	int i;
+	
+	for (i = 0; i < nlinks; i++)
+	{
+		lseek(fd, links[i].nino * 512 + NLOFF, SEEK_SET);
+		write(fd, &links[i].nlink, sizeof links[i].nlink);
+	}
+}
+
 void makeroot(int copy)
 {
 	struct file root;
@@ -250,7 +276,10 @@ void makeroot(int copy)
 	file_init(&root);
 	root.mode = XENUS_S_IFDIR | 0755;
 	if (copy)
+	{
 		file_copydir(&root, &root, ".");
+		patchlinks();
+	}
 	else
 		file_mkdirhead(&root, &root);
 	file_close(&root);
@@ -377,12 +406,23 @@ void file_add(struct file *dir, char *src)
 	struct file file;
 	struct stat st;
 	int fd;
+	int i;
 	
 	if (stat(src, &st))
 	{
 		perror(src);
 		exit(1);
 	}
+	
+	if (st.st_nlink > 1)
+		for (i = 0; i < nlinks; i++)
+			if (links[i].sino == st.st_ino && links[i].sdev == st.st_dev)
+			{
+				file_addent(dir, links[i].nino, src);
+				links[i].nlink++;
+				return;
+			}
+	
 	file_init(&file);
 	file.mode = translate_mode(st.st_mode);
 	if (pflag)
@@ -416,6 +456,15 @@ void file_add(struct file *dir, char *src)
 	file_addent(dir, file.inode, src);
 	if (vflag)
 		printf("%2u %6o %5u %s\n", file.nlink, file.mode, file.size, src);
+	
+	if (st.st_nlink > 1 && nlinks < MAXLNK)
+	{
+		links[nlinks].sino = st.st_ino;
+		links[nlinks].sdev = st.st_dev;
+		links[nlinks].nino = file.inode;
+		links[nlinks].nlink = 1;
+		nlinks++;
+	}
 }
 
 void file_mkdirhead(struct file *dir, struct file *parent)
@@ -557,9 +606,9 @@ int main(int argc, char **argv)
 	sb.mounted	 = 0;
 	sb.time		 = time(NULL);
 	
-	if (sb.nblocks > 300000)
+	if (sb.nblocks > 2000000)
 	{
-		fputs("blocks > 300000\n", stderr);
+		fputs("blocks > 2000000\n", stderr);
 		return 1;
 	}
 	
@@ -589,5 +638,11 @@ int main(int argc, char **argv)
 	initmap();
 	wsuper();
 	close(fd);
+#ifdef CROSS
 	return 0;
+#else
+	if (*argv)
+		execl("/bin/fsck", "mkfs", "-l", device, (void *)NULL);
+	return 127;
+#endif
 }

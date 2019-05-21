@@ -1,18 +1,18 @@
-tar - create or update file archives
+_tar_ - create or update file archives
       extract files from archives
 
-tar {crtux}[01pvv][f archive] [file...]
+_tar_ {*crtux*}[*01pvv*][*f* *archive*] [*file*...]
 
- c  create an archive
- r  append to an archive
- t  list archive contents
- u  same as r
- x  extract files from an archive
- p  preserve owner, group and mode when extracting files
- v  verbose operation (repeat to increase verbosity)
- f  specify archive file
- 0  use /dev/rfd0 as the archive file
- 1  use /dev/rfd1 as the archive file
+ *c*  create an archive
+ *r*  append to an archive
+ *t*  list archive contents
+ *u*  same as r
+ *x*  extract files from an archive
+ *p*  preserve owner, group and mode when extracting files
+ *v*  verbose operation (repeat to increase verbosity)
+ *f*  specify archive file
+ *0*  use /dev/rfd0 as the archive file
+ *1*  use /dev/rfd1 as the archive file
 
- archive  archive file (default is /dev/rfd0)
- file...  files to add to or extract from the archive
+ *archive*  archive file (default is /dev/rfd0)
+ *file*...  files to add to or extract from the archive

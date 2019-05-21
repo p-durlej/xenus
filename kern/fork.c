@@ -124,63 +124,9 @@ fail:
 	return -1;
 }
 
-pid_t sys_wait(int *status) // XXX should reuse waitpid
+pid_t sys_wait(int *status)
 {
-	struct process *z = NULL;
-	struct process *c = NULL;
-	struct process *p;
-	pid_t pid;
-	int err;
-	int st;
-	int zi;
-	int i;
-	
-restart:
-	for (i = 0; i < npact; i++)
-	{
-		p = pact[i];
-		
-		if (p->pid == 1 || !p->pid || p->parent != curr)
-			continue;
-		c = p;
-		if (c->exited)
-		{
-			zi = i;
-			z = c;
-		}
-	}
-	
-	if (!c)
-	{
-		uerr(ECHILD);
-		return -1;
-	}
-	
-	if (!z)
-	{
-		idle();
-		if (curr->sig)
-		{
-			uerr(EINTR);
-			return -1;
-		}
-		goto restart;
-	}
-	
-	st = z->exit_status;
-	err = tucpy(status, &st, sizeof st);
-	if (err)
-	{
-		uerr(err);
-		return -1;
-	}
-	
-	pid = z->pid;
-	pfree(z->kstk);
-	memset(z, 0, sizeof *z);
-	pact[zi] = pact[--npact];
-	
-	return pid;
+	return sys_waitpid(-1, status, 0);
 }
 
 pid_t sys_waitpid(pid_t wpid, int *status, int options)
@@ -203,7 +149,7 @@ restart:
 			continue;
 		c = p;
 		if (c->exited)
-			if (wpid < 0 || c->pid == wpid) // XXX not pgrp
+			if (wpid < 0 || c->pid == wpid || (!wpid && c->psid == p->psid))
 			{
 				zi = i;
 				z = c;

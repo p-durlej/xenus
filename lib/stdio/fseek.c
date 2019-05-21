@@ -30,13 +30,14 @@
 
 int fseek(FILE *f, long off, int whence)
 {
-	off_t o = ftell(f);
-	
-	if (o < 0)
-		return -1;
+	off_t o;
 	
 	if (f->buf_write)
 		fflush(f);
+	
+	o = ftell(f);
+	if (o < 0)
+		return -1;
 	
 	f->buf_insize = 0;
 	f->buf_pos    = 0;

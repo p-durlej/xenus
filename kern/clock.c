@@ -31,6 +31,7 @@
 #include <xenus/umem.h>
 #include <xenus/intr.h>
 #include <xenus/io.h>
+#include <string.h>
 #include <signal.h>
 #include <errno.h>
 
@@ -219,4 +220,25 @@ clock_t sys_times(struct tms *tms)
 		}
 	}
 	return clock_ticks();
+}
+
+int sys__ftime(struct timeb *buf)
+{
+	struct timeb t;
+	int err;
+	
+	memset(&t, 0, sizeof t);
+	
+	intr_disable();
+	t.time	  = time.time;
+	t.millitm = time.ticks * 1000 / HZ;
+	intr_enable();
+	
+	err = tucpy(buf, &t, sizeof t);
+	if (err)
+	{
+		uerr(err);
+		return -1;
+	}
+	return 0;
 }

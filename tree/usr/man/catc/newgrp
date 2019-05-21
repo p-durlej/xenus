@@ -1,5 +1,5 @@
-newgrp - change current user group
+_newgrp_ - change current user group
 
-newgrp [group]
+_newgrp_ [*group*]
 
- group  group to change to (default is the user's group as in /etc/passwd)
+ *group*  group to change to (default is the user's group as in /etc/passwd)

@@ -49,4 +49,6 @@ char *	strrchr(char *s, int c);
 size_t	strspn(char *s, char *accept);
 char *	strtok(char *s, char *delim);
 char *	strdup(char *s);
-char *	strerror(int errno);
+char *	strerror(int err);
+
+char *	strsignal(int nr);

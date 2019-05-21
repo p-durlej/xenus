@@ -35,6 +35,7 @@
 
 static char *snames[] = { "c", "f" };
 static char *sect;
+static char *moreflg = "-bx";
 static int iflag;
 static int xit;
 
@@ -58,7 +59,7 @@ static int help1(char *sname, char *name)
 	}
 	if (!pid)
 	{
-		execl("/bin/more", "/bin/more", path, (void *)NULL);
+		execl("/bin/more", "/bin/more", moreflg, path, (void *)NULL);
 		perror("/bin/more");
 		exit(1);
 	}
@@ -126,7 +127,24 @@ static void showidx(void)
 
 int main(int argc, char **argv)
 {
+	char *mancolor;
 	int i;
+	
+	mancolor = getenv("MANCOLOR");
+	if (mancolor)
+	{
+		switch (atoi(mancolor))
+		{
+		case 0:
+			moreflg = "-bx";
+			break;
+		case 1:
+			moreflg = "-b";
+			break;
+		default:
+			moreflg = "-bc";
+		}
+	}
 	
 	if (argc > 1 && !strcmp(argv[1], "-i"))
 	{

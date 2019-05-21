@@ -24,15 +24,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sys/ftime.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <time.h>
-
-static time_t etctz;
-static int etctzs;
-
-char *tzname[2];
-time_t timezone;
 
 #define isleap(y)	(!(y % 4) && ((y % 100) || (y % 400)))
 #define yearsecs(y)	((365 + isleap(y)) * 86400)
@@ -68,45 +65,6 @@ char *__libc_month[12]=
 };
 
 int __libc_monthlen[12]={ 31,28,31,30,31,30,31,31,30,31,30,31 };
-
-static void tzload(void)
-{
-	char buf[16];
-	FILE *f;
-	
-	if (etctzs)
-	{
-		timezone = etctz;
-		return;
-	}
-	
-	f = fopen("/etc/tz", "r");
-	if (!f)
-		return;
-	if (fgets(buf, sizeof buf, f))
-	{
-		etctz  = atoi(buf) * 60;
-		etctzs = 1;
-	}
-	fclose(f);
-	
-	timezone = etctz;
-}
-
-void tzset()
-{
-	char *p;
-	
-	timezone  = 0;
-	tzname[0] = "";
-	tzname[1] = "";
-	
-	p = getenv("TZ");
-	if (p)
-		timezone = atoi(p) * 60;
-	else
-		tzload();
-}
 
 char *asctime(struct tm *time)
 {

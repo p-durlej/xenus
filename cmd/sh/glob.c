@@ -148,7 +148,7 @@ static int glob1(char *pat, size_t plen)
 	d = opendir(odn);
 	if (d == NULL)
 		return 0; /* XXX error */
-	while (errno = 0,  de = readdir(d),  de != NULL)
+	while (errno = 0, de = readdir(d), de != NULL)
 		if (match(de->d_name, pat, plen))
 		{
 			aname(de->d_name);

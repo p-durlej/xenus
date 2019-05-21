@@ -1,0 +1,5 @@
+_disable_ - disable TTYs
+
+_disable_ [*tty1*...]
+
+ *tty1*...  terminal lines to disable

@@ -1,10 +1,10 @@
-mv - rename and move files
+_mv_ - rename and move files
 
-mv name1... dir
-mv name1 name2
+_mv_ *name1*... *dir*
+_mv_ *name1* *name2*
 
- name1...  files to move into dir
- dir       destination directory
+ *name1*...  files to move into *dir*
+ *dir*       destination directory
 
- name1  existing file pathname
- name2  new pathname of the file
+ *name1*  existing file pathname
+ *name2*  new pathname of the file

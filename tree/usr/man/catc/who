@@ -1,4 +1,4 @@
-who - print logged in users with their ttys and login times
+_who_ - print logged in users with their ttys and login times
 
-who
-who am i
+_who_
+_who_ am i

@@ -1,5 +1,5 @@
-cat - concatenate and type files on stdout
+_cat_ - concatenate and type files on stdout
 
-cat [file1...]
+_cat_ [*file1*...]
 
- file1...  files to print on stdout (default is stdin)
+ *file1*...  files to print on stdout (default is stdin)

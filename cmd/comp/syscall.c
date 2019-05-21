@@ -202,6 +202,16 @@ static int mnx_times(struct message *msg)
 	return 0;
 }
 
+static int mnx_setsid(struct message *msg)
+{
+	return setsid();
+}
+
+static int mnx_getpgrp(struct message *msg)
+{
+	return getpgrp();
+}
+
 static int mnx_nosys(struct message *msg)
 {
 	errno = ENOSYS;
@@ -234,7 +244,7 @@ static mnx_syscall *systab[] = {
 	[23] = mnx_setuid,
 	[24] = mnx_getuid,
 	[25] = mnx_stime,
-//	[26] = mnx_ptrace,
+	[26] = mnx_nosys, /* ptrace */
 	[27] = mnx_alarm,
 	[28] = mnx_fstat,
 	[29] = (void *)pause,
@@ -255,8 +265,8 @@ static mnx_syscall *systab[] = {
 	[59] = mnx_exec,
 	[60] = mnx_umask,
 	[61] = mnx_chroot,
-//	[62] = mnx_setsid,
-//	[63] = mnx_getpgrp,
+	[62] = mnx_setsid,
+	[63] = mnx_getpgrp,
 	[71] = mnx_sigaction,
 	[72] = mnx_sigsuspend,
 	[73] = mnx_sigpending,

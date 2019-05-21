@@ -1,6 +1,6 @@
-write - write a message to an user
+_write_ - write a message to an user
 
-write user [tty]
+_write_ *user* [*tty*]
 
- user  user to write to
- tty   display the message on a specific tty
+ *user*  user to write to
+ *tty*   display the message on a specific tty

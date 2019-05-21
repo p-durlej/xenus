@@ -1,7 +1,7 @@
-fsck - check and repair file systems
+_fsck_ - check and repair file systems
 
-fsck [-fvv] dev1...
-fsck [-fvv] -a
+_fsck_ [-*fvv*] *dev1*...
+_fsck_ [-*fvv*] -*a*
 
- -f   fix inconsistencies
- -vv  verbose operation
+ -*f*   fix inconsistencies
+ -*vv*  verbose operation

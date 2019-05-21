@@ -430,7 +430,7 @@ void psync(void)
 	blk_sync(0, HZ / 10);
 }
 
-int sys_sync()
+int sys_sync(void)
 {
 	int i;
 	
@@ -439,5 +439,28 @@ int sys_sync()
 			save_freemap(&super[i]);
 	inode_sync(1);
 	blk_sync(0, 0);
+	return 0;
+}
+
+int sys__readwrite(void)
+{
+	int err;
+	
+	if (curr->euid)
+	{
+		uerr(EPERM);
+		return -1;
+	}
+	
+	if (!curr->root->sb->ro)
+		return 0;
+	
+	err = load_freemap(curr->root->sb);
+	if (err)
+	{
+		uerr(EPERM);
+		return -1;
+	}
+	curr->root->sb->ro = 0;
 	return 0;
 }

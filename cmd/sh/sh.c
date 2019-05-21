@@ -27,8 +27,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <environ.h>
 #include <signal.h>
 #include <limits.h>
+#include <ulimit.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -59,8 +61,6 @@
 
 #define MAXENV		64
 
-extern char **environ;
-
 char *nenv[MAXENV + 1];
 char envdup[MAXENV];
 
@@ -74,6 +74,7 @@ static int cmd_umask(int argc, char **argv);
 static int cmd_newgrp(int argc, char **argv);
 static int cmd_unset(int argc, char **argv);
 static int cmd_exec(int argc, char **argv);
+static int cmd_ulimit(int argc, char **argv);
 
 static int waitexit(int st);
 static char *readln(void);
@@ -94,6 +95,7 @@ static struct comm
 	{ "newgrp",	cmd_newgrp	},
 	{ "unset",	cmd_unset	},
 	{ "exec",	cmd_exec	},
+	{ "ulimit",	cmd_ulimit	},
 };
 
 extern char *	__progname;
@@ -257,12 +259,32 @@ static int cmd_unset(int argc, char **argv)
 		unsetenv(argv[i]);
 	return 0;
 }
-
 static int cmd_exec(int argc, char **argv)
 {
 	execvp(argv[1], argv + 1);
 	perror(argv[1]);
 	return ERR_EXEC;
+}
+
+static int cmd_ulimit(int argc, char **argv)
+{
+	int cmd = UL_GETFSIZE;
+	long lim = 0;
+	
+	if (argc > 1)
+	{
+		lim = atoi(argv[1]);
+		cmd = UL_SETFSIZE;
+	}
+	lim = ulimit(cmd, lim);
+	if (lim < 0)
+	{
+		perror(NULL);
+		return 1;
+	}
+	if (argc <= 1)
+		printf("%u\n", lim);
+	return 0;
 }
 
 static int otoi(char *nptr)
@@ -331,7 +353,7 @@ static void pstatus(int st)
 	int sig = WTERMSIG(st);
 	
 	if (sig && sig != SIGINT)
-		fprintf(stderr, "%s%s\n", sys_siglist[sig],
+		fprintf(stderr, "%s%s\n", strsignal(sig),
 			WCOREDUMP(st) ? " (core dumped)" : "");
 }
 

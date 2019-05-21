@@ -1,5 +1,5 @@
-mkuser - create a new user account
+_mkuser_ - create a new user account
 
-mkuser name
+_mkuser_ *name*
 
- name  new user's login name
+ *name*  new user's login name

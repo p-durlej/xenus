@@ -1,6 +1,6 @@
-chstk - print and change stack allocation of executables
+_chstk_ - print and change stack allocation of executables
 
-chstk [-newsize] binfile...
+_chstk_ [-*newsize*] *binfile*...
 
- newsize  new stack size
- binfile  executables to process
+ *newsize*  new stack size
+ *binfile*  executables to process

@@ -24,9 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <environ.h>
 #include <stdio.h>
-
-extern char **environ;
 
 int main()
 {

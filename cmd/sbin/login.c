@@ -28,6 +28,7 @@
 #include <sys/termios.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <ulimit.h>
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
@@ -45,11 +46,11 @@ int _killf(char *path, int sig);
 char passwd[MAX_CANON + 1];
 char user[MAX_CANON + 1];
 
-char termvar[32] = "TERM=XXX";
+char path[100] = "PATH=:/bin:/usr/bin";
 
 char *nenv[] =
 {
-	"PATH=:/bin:/usr/bin:/usr/mnx",
+	path,
 	"HOME=/",
 	NULL, /* TERM */
 	NULL
@@ -112,6 +113,23 @@ void tty_chown(uid_t uid)
 fail:
 	perror(name);
 	incorrect();
+}
+
+static void sulimit(void)
+{
+	char buf[81];
+	FILE *f;
+	
+	f = fopen("/etc/ulimit", "r");
+	if (!f)
+	{
+		if (errno != ENOENT)
+			perror("/etc/ulimit");
+		return;
+	}
+	if (fgets(buf, sizeof buf, f))
+		ulimit(UL_SETFSIZE, atoi(buf));
+	fclose(f);
 }
 
 void sutmp(void)
@@ -258,8 +276,15 @@ void login(char *user, char *passwd)
 	nenv[1] = p;
 	
 	if (!pw->pw_uid)
-		nenv[0] = "PATH=/bin:/usr/bin:/usr/mnx";
+		strcpy(path, "PATH=/bin:/usr/bin");
 	
+	if (!access("/usr/mnx", 0))
+		strcat(path, ":/usr/mnx");
+	
+	if (!access("/usr/ubin", 0))
+		strcat(path, ":/usr/ubin");
+	
+	sulimit();
 	setgid(pw->pw_gid);
 	setuid(pw->pw_uid);
 	endpwent();

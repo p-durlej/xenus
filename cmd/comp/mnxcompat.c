@@ -63,16 +63,16 @@ void panic(char *msg)
 	abort();
 }
 
-int rawmain(char *args, char *env, char *prog)
+int rawmain(char *args, char *env, char *prog, int pfd)
 {
-	if (!prog)
+	if (!prog || pfd < 0)
 	{
 		prdiag("Not permitted\n");
 		return 1;
 	}
 	
 	_setcompat(asm_syscall);
-	load(prog);
+	load(prog, pfd);
 	siginit();
 	start(args, env);
 	return 127;

@@ -65,13 +65,15 @@ struct super
 	time_t	time;
 };
 
-#define BMAP_SIZE	64
-#define IBMAP_SIZE	57
+#define BMAP0_SIZE	64
+#define BMAP1_SIZE	32
+#define BMAP2_SIZE	25
 
 struct disk_inode
 {
-	blk_t	bmap[BMAP_SIZE];
-	blk_t	ibmap[IBMAP_SIZE];
+	blk_t	bmap0[BMAP0_SIZE];
+	blk_t	bmap1[BMAP1_SIZE];
+	blk_t	bmap2[BMAP2_SIZE];
 	time_t	atime;
 	time_t	mtime;
 	time_t	ctime;

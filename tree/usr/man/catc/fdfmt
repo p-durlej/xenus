@@ -1,5 +1,5 @@
-fdfmt - format diskette
+_fdfmt_ - format diskette
 
-fdfmt [dev]
+_fdfmt_ [*dev*]
 
- dev  floppy device pathname
+ *dev*  floppy device pathname

@@ -122,8 +122,9 @@ int alloc_inode(struct super *sb, struct inode **ino)
 	(*ino)->d.mtime	= time.time;
 	(*ino)->d.ctime	= time.time;
 	(*ino)->d.nlink	= 0;
-	memset((*ino)->d.bmap,  0, sizeof((*ino)->d.bmap));
-	memset((*ino)->d.ibmap, 0, sizeof((*ino)->d.ibmap));
+	memset((*ino)->d.bmap0, 0, sizeof((*ino)->d.bmap0));
+	memset((*ino)->d.bmap1, 0, sizeof((*ino)->d.bmap1));
+	memset((*ino)->d.bmap2, 0, sizeof((*ino)->d.bmap2));
 	return 0;
 }
 

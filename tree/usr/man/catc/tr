@@ -1,13 +1,13 @@
-tr - translate characters
+_tr_ - translate characters
      squeeze sequences of same characters
      delete characters
 
-tr -ds delete squeeze
-tr -d delete
-tr -s squeeze
-tr from to
+_tr_ -*ds* *delete* *squeeze*
+_tr_ -*d* *delete*
+_tr_ -*s* *squeeze*
+_tr_ *from* *to*
 
- -d  delete characters in delete
- -s  squeeze characters in squeeze
+ -*d*  delete characters in delete
+ -*s*  squeeze characters in squeeze
 
 By default characters in from are translated into characters in to.

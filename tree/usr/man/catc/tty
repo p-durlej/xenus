@@ -1,3 +1,3 @@
-tty - print the name of the tty open as stdin
+_tty_ - print the name of the tty open as stdin
 
-tty
+_tty_

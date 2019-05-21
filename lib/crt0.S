@@ -26,6 +26,8 @@
 
 	.globl _base
 	.globl _start
+	.globl _empath
+	.globl _emfd
 
 _base:
 	.ascii	"XENUS386"
@@ -35,7 +37,12 @@ _base:
 	.long	0x4000
 	.long	errno
 
-.globl _start
 _start:
+	movl	%edi, _empath
+	movl	%ecx, _emfd
 	push	%ebx
 	call	__libc_start
+
+	.bss
+_empath: .space 4
+_emfd:	.space 4

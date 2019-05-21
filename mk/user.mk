@@ -31,7 +31,7 @@ LD = ld --T $(TOPDIR)/lds
 AS = as
 
 .c.o:
-	$(CC) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 .S.o:
 	$(CC) -c -o $@ $<

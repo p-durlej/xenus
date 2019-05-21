@@ -1,7 +1,7 @@
-echo - print arguments to stdout
+_echo_ - print arguments to stdout
 
-echo [-n] string1...
+_echo_ [-*n*] *string1*...
 
- -n  do not print the trailing newline
+ -*n*  do not print the trailing newline
 
- string1...  strings to print
+ *string1*...  strings to print
